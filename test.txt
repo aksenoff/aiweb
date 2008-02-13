@@ -1,0 +1,4 @@
+Ivanov:10
+Petrov:20
+  Sidorov:30 -> Ivanov:10 Petrov:20
+  -Sidorov:40

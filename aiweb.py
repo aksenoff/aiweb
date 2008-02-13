@@ -106,6 +106,6 @@ def calc_rank(users, messages):
     for node in nodes: node.calc_targets()
         
 if __name__ == '__main__':
-    users, messages = parse(file('c:\\test.txt'))
+    users, messages = parse(file('test.txt'))
     # raw_input()
     
