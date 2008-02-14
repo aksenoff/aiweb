@@ -40,6 +40,16 @@ class Message(Node):
         else: user.posts.append(self)
     def __repr__(self):
         return '<%s %s:%d>' % (self.__class__.__name__, self.user.login, self.number)
+    def calc_targets(self):
+        if self in self.user.posts:
+            tmp = 1 + len(self.links_to)
+        else tmp = 2 + len(self.links_to)
+        user_weight = parent_weight = links_weight = 1. / tmp
+        self.targets = {}
+        self.targets[parent] = parent_weight
+        self.targets[user] = user_weight
+        for link in links_to:
+            self.targets[link] = link_weight
 
 class SyntaxError(Exception):
     def __init__(self, line_number, msg, line_text):
