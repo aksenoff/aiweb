@@ -4,7 +4,8 @@ re_line = re.compile(r"^( *)(-?)(\w+:\d+)(?: *->((?: *\b\w+:\d+\b)+))?\s*\Z")
 
 class Node(object):
     def __init__(self):
-        self.rank = 1
+        self.rank = 0
+        self.new_rank = 0
     def calc_targets(self):
         self.targets = {}
 
@@ -17,13 +18,14 @@ class User(Node):
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.login)
     def calc_targets(self):
+        self.targets = {}
         tmp = len(self.posts)*2 + len(self.comments)
         post_weight = 2. / tmp
         comment_weight = 1. / tmp
         self.targets = {}
         for post in self.posts:
             self.targets[post] = post_weight
-        for comment in self.coments:
+        for comment in self.comments:
             self.targets[comment] = comment_weight
 
 class Message(Node):
@@ -34,22 +36,21 @@ class Message(Node):
         self.number = number
         self.indent = indent
         self.parent = parent
-        self.links_to = []
-        self.links_from = []
+        self.links_to = set()
+        self.links_from = set()
         if parent: user.comments.append(self)
         else: user.posts.append(self)
     def __repr__(self):
         return '<%s %s:%d>' % (self.__class__.__name__, self.user.login, self.number)
     def calc_targets(self):
-        if self in self.user.posts:
-            tmp = 1 + len(self.links_to)
-        else tmp = 2 + len(self.links_to)
-        user_weight = parent_weight = links_weight = 1. / tmp
         self.targets = {}
-        self.targets[parent] = parent_weight
-        self.targets[user] = user_weight
-        for link in links_to:
-            self.targets[link] = link_weight
+        parent, targets = self.parent, self.targets
+        if parent: tmp = 2 + len(self.links_to)
+        else: tmp = 1 + len(self.links_to)
+        user_weight = parent_weight = link_weight = 1. / tmp
+        if parent: targets[parent] = parent_weight
+        targets[self.user] = user_weight
+        for link in self.links_to: targets[link] = link_weight
 
 class SyntaxError(Exception):
     def __init__(self, line_number, msg, line_text):
@@ -98,8 +99,8 @@ def do_parse(f):
                 raise SyntaxError(-1, 'incorrect user %s in message %d' % (login, number))
             if message2 in message.links_to or message in message2.links_from:
                 raise SyntaxError(-1, 'duplicate link between %d and %d' % (message.number, number))
-            message.links_to.append(message2)
-            message2.links_from.append(message)
+            message.links_to.add(message2)
+            message2.links_from.add(message)
     return users, messages
 
 def parse(f):
@@ -109,13 +110,28 @@ def parse(f):
         print 'Syntax error in line %d: %s' % (e.line_number, e.msg)
         print e.line_text
 
-def calc_rank(users, messages):
-    nodes = []
-    nodes.extend(users.itervalues())
-    nodes.extend(messages.itervalues())
-    for node in nodes: node.calc_targets()
-        
+dumping_factor = 0.85
+
+nodes = []
+
+def calc_rank():
+    for node in nodes: node.new_rank = 0
+    for node in nodes:
+        rank = node.rank
+        for target, coeff in node.targets.items():
+           target.new_rank += rank*coeff
+           # print node, rank, target, coeff, rank*coeff, target.new_rank
+    for node in nodes:
+        # print node, node.new_rank
+        node.rank = 1. - dumping_factor + dumping_factor*node.new_rank
+           
 if __name__ == '__main__':
     users, messages = parse(file('test.txt'))
-    # raw_input()
+    nodes.extend(users.itervalues())
+    nodes.extend(messages.itervalues())
+    for node in nodes:
+        node.rank = 1.
+        node.calc_targets() 
+    for i in range(100): calc_rank()
+    for login, user in users.iteritems(): print login, user.rank
     
