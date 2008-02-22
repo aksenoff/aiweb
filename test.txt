@@ -2,3 +2,13 @@ Ivanov:10
 Petrov:20
   Sidorov:30 -> Ivanov:10 Petrov:20
   -Sidorov:40
+Smirnov:11
+Smirnov:12
+Tarasov:14
+Semenov:18
+Ivanov:33 -> Smirnov:12
+  -Tarasov:26
+    Ivanov:21
+    Petrov:34
+      Semenov:19
+      -Petrov:17 -> Smirnov:12
