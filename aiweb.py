@@ -15,6 +15,7 @@ class User(Node):
         self.login = login
         self.posts = []
         self.comments = []
+        self.votes = {}
     def __repr__(self):
         return '<%s: %s>' % (self.__class__.__name__, self.login)
     def calc_targets(self):
@@ -29,13 +30,30 @@ class User(Node):
             self.targets[post] = post_weight
         for comment in self.comments:
             self.targets[comment] = comment_weight
+        for message, sign in self.votes.items():
+            if message.user not in self.targets.keys():
+                if sign: self.targets[message.user] = 0.01
+                else: self.targets[message.user] = -0.01
+            else:
+                if sign: self.targets[message.user] += 0.01
+                else: self.targets[message.user] -= 0.01
     def del_message(self, message):
         message.deleted = True
+    def vote(self, message, sign):
+        # True for "+" and False for "-"
+        if self not in message.voters.keys():
+            message.voters[self] = sign
+            self.votes[message] = sign
+            if sign: message.karma += 1
+            else: message.karma -= 1
+        else: pass
 
 class Message(Node):
     def __init__(self, user, number, parent=None, indent=0):
         Node.__init__(self)
         self.deleted = False
+        self.karma = 0
+        self.voters = {}
         self.user = user
         self.number = number
         self.indent = indent
@@ -56,7 +74,7 @@ class Message(Node):
         targets[self.user] = user_weight
         for link in self.links_to: targets[link] = link_weight
         if self.deleted:
-            self.parent.user.targets[self.user] = - self.parent.user.rank*0.1
+            self.parent.user.targets[self.user] = -0.1
 
 class SyntaxError(Exception):
     def __init__(self, line_number, msg, line_text):
@@ -128,7 +146,7 @@ def calc_rank():
            target.new_rank += rank*coeff
            # print node, rank, target, coeff, rank*coeff, target.new_rank
     for node in nodes:
-        print node, node.new_rank
+        # print node, node.new_rank
         node.rank = 1. - dumping_factor + dumping_factor*node.new_rank
 
 if __name__ == '__main__':
