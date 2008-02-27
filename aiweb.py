@@ -1,6 +1,13 @@
 import re
 
-re_line = re.compile(r"^( *)(-?)(\w+:\d+)(?: *->((?: *\b\w+:\d+\b)+))?\s*\Z")
+re_line = re.compile(r"^( *)(-?)(\w+:\d+)(?: *->\(((?: *\b\w+:\d+\b)+)\))?\s*(?: *\+\(((?: *\b\w+\b)+)\))?\s*(?: *-\(((?: *\b\w+\b)+)\))?\s*\Z")
+re_line = re.compile(r"^( *)(-?)(\w+:\d+)(?: *->\(((?: *\b\w+:\d+\b)+)\))?(?: *\+\( *(\b\w+\b *)+\))?(?: *-\( *(\b\w+\b *)+\))?\s*\Z")
+
+
+#constants
+dumping_factor = 0.85
+karma_part = 0.1
+del_coeff = -0.1
 
 class Node(object):
     def __init__(self):
@@ -31,7 +38,7 @@ class User(Node):
         for comment in self.comments:
             self.targets[comment] = comment_weight
         for message, sign in self.votes.items():
-            self.targets[message.user] = self.targets.get(message.user, 0) + (-0.01, 0.01)[sign]
+            self.targets[message] = self.targets.get(message, 0) + (-karma_part / len(self.votes), karma_part / len(self.votes))[sign]
     def del_message(self, message):
         message.deleted = True
     def vote(self, message, sign):
@@ -39,8 +46,7 @@ class User(Node):
         if self not in message.voters.keys():
             message.voters[self] = sign
             self.votes[message] = sign
-            if sign: message.karma += 1
-            else: message.karma -= 1
+            message.karma += (-1, 1)[sign]
         else: pass
 
 class Message(Node):
@@ -69,7 +75,9 @@ class Message(Node):
         targets[self.user] = user_weight
         for link in self.links_to: targets[link] = link_weight
         if self.deleted:
-            self.parent.user.targets[self.user] = -0.1
+            self.parent.user.targets[self.user] = del_coeff
+    def delete(self, deleter):
+        self.deleted
 
 class SyntaxError(Exception):
     def __init__(self, line_number, msg, line_text):
@@ -129,8 +137,6 @@ def parse(f):
         print 'Syntax error in line %d: %s' % (e.line_number, e.msg)
         print e.line_text
 
-dumping_factor = 0.85
-
 nodes = []
 
 def calc_rank():
@@ -151,6 +157,5 @@ if __name__ == '__main__':
     for node in nodes:
         node.rank = 1.
         node.calc_targets() 
-    for i in range(10): calc_rank()
+    for i in range(1000): calc_rank()
     for login, user in users.iteritems(): print login, user.rank
-    
