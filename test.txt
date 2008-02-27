@@ -1,6 +1,6 @@
 Ivanov:10 
 Petrov:20 
-  Sidorov:30 ->(Ivanov:10 Petrov:20) +(Ivanov Petrov) 
+  Sidorov:30 ->(Ivanov:10 Petrov:20) +Ivanov -Petrov 
   -Sidorov:40
 Smirnov:11
 Smirnov:12

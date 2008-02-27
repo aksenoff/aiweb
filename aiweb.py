@@ -1,7 +1,6 @@
 import re
 
-re_line = re.compile(r"^( *)(-?)(\w+:\d+)(?: *->\(((?: *\b\w+:\d+\b)+)\))?\s*(?: *\+\(((?: *\b\w+\b)+)\))?\s*(?: *-\(((?: *\b\w+\b)+)\))?\s*\Z")
-re_line = re.compile(r"^( *)(-?)(\w+:\d+)(?: *->\(((?: *\b\w+:\d+\b)+)\))?(?: *\+\( *(\b\w+\b *)+\))?(?: *-\( *(\b\w+\b *)+\))?\s*\Z")
+re_line = re.compile(r"^( *)(-?)(\w+:\d+)(?: *-> *\(((?: *\b\w+:\d+\b)+)\))?((?: *[+-]\w+)+)?\s*\Z")
 
 
 #constants
@@ -38,7 +37,7 @@ class User(Node):
         for comment in self.comments:
             self.targets[comment] = comment_weight
         for message, sign in self.votes.items():
-            self.targets[message] = self.targets.get(message, 0) + (-karma_part / len(self.votes), karma_part / len(self.votes))[sign]
+            self.targets[message] = (-karma_part / len(self.votes), karma_part / len(self.votes))[sign]
     def del_message(self, message):
         message.deleted = True
     def vote(self, message, sign):
@@ -95,7 +94,7 @@ def do_parse(f):
         if line.isspace(): continue
         match = re_line.match(line)
         if match is None: raise SyntaxError(i+1, 'incorrect syntax', line)
-        indent, deleted, msg, links_to = match.groups()
+        indent, deleted, msg, links_to, voters = match.groups()
         indent = len(indent)
         flag = False
         while parents and parents[-1].indent >= indent:
@@ -114,6 +113,12 @@ def do_parse(f):
         parents.append(message)
         messages[number] = message
         links[message] = links_to or ''
+        if voters is None: continue
+        for voter in voters.split():
+            sign, login = voter[0], voter[1:]
+            user = users.get(login)
+            if user is None: user = users[login] = User(login)
+            user.vote(message, sign == '+')
     for message, links_to in links.items():
         links_to = links_to.split()
         for msg_name in links_to:
