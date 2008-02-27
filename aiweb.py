@@ -19,7 +19,9 @@ class User(Node):
         return '<%s: %s>' % (self.__class__.__name__, self.login)
     def calc_targets(self):
         self.targets = {}
-        tmp = len(self.posts)*2 + len(self.comments)
+        n_posts = len(self.posts)
+        n_comments = len(self.comments)
+        tmp = n_posts*2 + n_comments
         post_weight = 2. / tmp
         comment_weight = 1. / tmp
         self.targets = {}
@@ -27,6 +29,8 @@ class User(Node):
             self.targets[post] = post_weight
         for comment in self.comments:
             self.targets[comment] = comment_weight
+    def del_message(self, message):
+        message.deleted = True
 
 class Message(Node):
     def __init__(self, user, number, parent=None, indent=0):
@@ -51,6 +55,8 @@ class Message(Node):
         if parent: targets[parent] = parent_weight
         targets[self.user] = user_weight
         for link in self.links_to: targets[link] = link_weight
+        if self.deleted:
+            self.parent.user.targets[self.user] = - self.parent.user.rank*0.1
 
 class SyntaxError(Exception):
     def __init__(self, line_number, msg, line_text):
@@ -122,9 +128,9 @@ def calc_rank():
            target.new_rank += rank*coeff
            # print node, rank, target, coeff, rank*coeff, target.new_rank
     for node in nodes:
-        # print node, node.new_rank
+        print node, node.new_rank
         node.rank = 1. - dumping_factor + dumping_factor*node.new_rank
-           
+
 if __name__ == '__main__':
     users, messages = parse(file('test.txt'))
     nodes.extend(users.itervalues())
@@ -132,6 +138,6 @@ if __name__ == '__main__':
     for node in nodes:
         node.rank = 1.
         node.calc_targets() 
-    for i in range(100): calc_rank()
+    for i in range(10): calc_rank()
     for login, user in users.iteritems(): print login, user.rank
     
