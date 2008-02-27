@@ -31,12 +31,7 @@ class User(Node):
         for comment in self.comments:
             self.targets[comment] = comment_weight
         for message, sign in self.votes.items():
-            if message.user not in self.targets.keys():
-                if sign: self.targets[message.user] = 0.01
-                else: self.targets[message.user] = -0.01
-            else:
-                if sign: self.targets[message.user] += 0.01
-                else: self.targets[message.user] -= 0.01
+            self.targets[message.user] = self.targets.get(message.user, 0) + (-0.01, 0.01)[sign]
     def del_message(self, message):
         message.deleted = True
     def vote(self, message, sign):
