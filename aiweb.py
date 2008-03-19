@@ -1,7 +1,8 @@
 import re
+from pony.main import *
 
 re_line = re.compile(r"^( *)(-?)(\w+:\d+)(?: *-> *\(((?: *\b\w+:\d+\b)+)\))?((?: *[+-]\w+)+)?\s*\Z")
-
+use_autoreload()
 
 #constants
 dumping_factor = 0.85
@@ -164,3 +165,13 @@ if __name__ == '__main__':
         node.calc_targets() 
     for i in range(1000): calc_rank()
     for login, user in users.iteritems(): print login, user.rank
+
+@http('/')
+@printhtml
+def home():
+    uranks = sorted(users.values(), key=lambda x: x.rank, reverse=True)
+    mranks = sorted(messages.values(), key=lambda x: x.rank, reverse=True)
+    return html()
+
+
+http.start()    
