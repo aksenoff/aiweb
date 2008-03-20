@@ -38,7 +38,7 @@ class User(Node):
         for comment in self.comments:
             self.targets[comment] = comment_weight
         for message, sign in self.votes.items():
-            self.targets[message] = (-karma_part / len(self.votes), karma_part / len(self.votes))[sign]
+            self.targets[message] = sign * karma_part / len(self.votes)
     def del_message(self, message):
         message.deleted = True
     def vote(self, message, sign):
@@ -46,7 +46,7 @@ class User(Node):
         if self not in message.voters.keys():
             message.voters[self] = sign
             self.votes[message] = sign
-            message.karma += (-1, 1)[sign]
+            message.karma += sign
         else: pass
 
 class Message(Node):
@@ -119,7 +119,7 @@ def do_parse(f):
             sign, login = voter[0], voter[1:]
             user = users.get(login)
             if user is None: user = users[login] = User(login)
-            user.vote(message, sign == '+')
+            user.vote(message, sign == '+' and 1 or -1)
     for message, links_to in links.items():
         links_to = links_to.split()
         for msg_name in links_to:
