@@ -154,8 +154,8 @@ def calc_rank():
         # print node, node.new_rank
         node.rank = 1. - dumping_factor + dumping_factor*node.new_rank
 
-if __name__ == '__main__':
-    users, messages = parse(file('test.txt'))
+def load_from_file(filename='test.txt'):
+    users, messages = parse(file(filename))
     nodes.extend(users.itervalues())
     nodes.extend(messages.itervalues())
     for node in nodes:
@@ -163,4 +163,7 @@ if __name__ == '__main__':
         node.calc_targets() 
     for i in range(1000): calc_rank()
     for login, user in users.iteritems(): print login, user.rank
-    
+    return users, messages
+
+if __name__ == '__main__':
+    load_from_file()

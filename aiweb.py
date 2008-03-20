@@ -1,15 +1,28 @@
+# coding: cp1251
+
 from pony.main import *
 use_autoreload()
 
-from core import users, messages
+import core
+
+users, messages = core.load_from_file()
+
+class LoginForm(Form):
+    def __init__(self):
+        self.login = Text(u'Ћогин')
+        self.password = Text(u'ѕароль')
+        self.button = Submit(u'¬ход')
+
+##    def __init__(self):
+##        l1 = self.add_layout(True)
+##        l2 = l1.add_layout(False)
+##        l2.login = Text(u'Ћогин')
+##        l2.password = Text(u'ѕароль')
+##        l1.button = Submit(u'¬ход')
 
 @printhtml
 def registration_component():
-    print '''
-    <div class="span-6 last">option 44</div>
-    <div class="span-6 last">option 55</div>
-    <div class="span-6 last">option 66</div>
-    '''
+    return LoginForm()
     
 @http('/')
 @printhtml
@@ -17,6 +30,5 @@ def home():
     uranks = sorted(users.values(), key=lambda x: x.rank, reverse=True)
     mranks = sorted(messages.values(), key=lambda x: x.rank, reverse=True)
     return html()
-
 
 http.start()    
