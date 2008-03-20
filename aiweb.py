@@ -76,8 +76,8 @@ class Message(Node):
         for link in self.links_to: targets[link] = link_weight
         if self.deleted:
             self.parent.user.targets[self.user] = del_coeff
-    def delete(self, deleter):
-        self.deleted
+    # def delete(self, deleter):
+    #    self.deleted
 
 class SyntaxError(Exception):
     def __init__(self, line_number, msg, line_text):
