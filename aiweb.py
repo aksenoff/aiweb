@@ -26,9 +26,11 @@ def registration_component():
     
 @http('/')
 @printhtml
-def home():
+def main():
     uranks = sorted(users.values(), key=lambda x: x.rank, reverse=True)
     mranks = sorted(messages.values(), key=lambda x: x.rank, reverse=True)
     return html()
+
+@http('/user/')
 
 http.start()    
