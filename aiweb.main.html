@@ -1,0 +1,48 @@
+<link default>
+<link rel="stylesheet" href="/static/plugins/fancy-type/screen.css" type="text/css" media="screen, projection">
+<title>aiweb mainpage</title>
+<body>
+	  <div class="container">
+	  	   <div class="span-18">
+			<h1>aiweb test main page</h1>
+		   </div>
+                   <div class="span-6 last">
+                        $registration_component()
+		   </div>
+                   <hr/>		   
+		   <div class="span-5 colborder"><h2>Top rated users</h2>
+			$for(i in range(10)) {
+				<div class="span-5 last">
+                        	$(uranks[i].login)
+                   		</div>
+                                <hr/>}
+                   </div>
+		   <div class="span-12 colborder">
+		   	<div class="span-12 last">
+                        	<h3>Recommended posts / Most Recent posts</h3>
+                   	</div>
+		   	<div class="span-12 last">
+                        $for(i in range(10)) {
+                        	<div class="span-12 last">
+                        	$(mranks[i].number) by $(mranks[i].user.login)
+                   		</div>
+                                <hr/>}                        	
+                   	</div>
+                   </div>
+		   <div class="span-5 last">
+                   	<div class="span-5 last">
+                        	<h2>Best posts</h2>
+					$for(i in range(10)) {
+                        		<div class="span-5 last">
+                        		$(mranks[i].number) by $(mranks[i].user.login)
+                   			</div>
+                                	<hr/>}
+                   	</div>
+                        <div class="span-5 alt last">
+                        	<h3>Tags cloud</h3>
+                   	</div>
+                   </div>	
+	  </div>
+
+</body>
+</html>
