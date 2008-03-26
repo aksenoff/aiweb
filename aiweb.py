@@ -16,12 +16,14 @@ def connect():
 class LoginForm(Form):
     def __init__(self):
         Form.__init__(self, method='POST')
-        self.grid = Grid(columns=['', ''])
+        self.grid = Grid(columns=['', '', ''])
         self.grid.row_count = 2
-        self.grid[0, 0] = Text(u'Логин')
-        self.grid[0, 1] = Submit(u'Вход')
-        self.grid[1, 0] = Text(u'Пароль')
-        self.grid[1, 1] = None
+        self.grid[0, 0] = StaticText(u'Логин')
+        self.grid[0, 1] = Text(size=10)
+        self.grid[0, 2] = Submit(u'Вход')
+        self.grid[1, 0] = StaticText(u'Пароль')
+        self.grid[1, 1] = Password(size=10)
+        self.grid[1, 2] = StaticText(link(u'регистрация', register))
 
 
 class RegForm(Form):
@@ -51,7 +53,11 @@ class RegForm(Form):
 def registration_component():
     user_id = get_user()
     if user_id is None:
-        return LoginForm()
+        f = LoginForm()
+        print f.header
+        print f.grid.tag
+        print '</form>'
+        return
     con=connect()
     login = con.execute(u'select login from Users where id=?',[user_id]).fetchone()
     print u'<h3>Вы вошли как: %s</h3>' % (login)
