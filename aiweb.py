@@ -3,6 +3,7 @@
 from pony.main import *
 from pony.thirdparty import sqlite
 from datetime import *
+from datetime import datetime
 import sha
 use_autoreload()
 
@@ -19,12 +20,23 @@ class LoginForm(Form):
         self.grid = Grid(columns=['', '', ''])
         self.grid.row_count = 2
         self.grid[0, 0] = StaticText(u'Логин')
-        self.grid[0, 1] = Text(size=10)
-        self.grid[0, 2] = Submit(u'Вход')
+        self.grid[0, 1] = Text(size=10, tabindex=1)
+        self.grid[0, 2] = Submit(u'Вход', tabindex=3)
         self.grid[1, 0] = StaticText(u'Пароль')
-        self.grid[1, 1] = Password(size=10)
-        self.grid[1, 2] = StaticText(link(u'регистрация', register))
-
+        self.grid[1, 1] = Password(size=10, tabindex=2)
+        self.grid[1, 2] = StaticText(link(u'Регистрация', register))
+    def validate(self):
+        con = connect()
+        row = self.con.execute(u'select id from Users where login = ?', [ self.login.value ]).fetchone()
+        if row is None:
+            pass
+        hash = sha.new(self.grid[1, 1].value).hexdigest()
+        hash2 = con.execute('select password fron Users where id = ?', [ http.user ])
+        if hash!=hash2: pass
+        con.close()        
+    def on_submit(self):
+        pass
+        
 
 class RegForm(Form):
     def __init__(self):
@@ -32,22 +44,23 @@ class RegForm(Form):
         self.email = Text(u'Почтовый адрес')
         self.password = Password(u'Пароль', required=True)
         self.password2 = Password(u'Повтор пароля', required=True)
-        self.con = connect()
-    def validate(self):        
-        if self.password.value!=self.password2.value:
-            self.password.error_text = self.password2.error_text = u'Пароли не совпадают!'
-        row = self.con.execute(u'select id from Users where login = ?', [ self.login.value ]).fetchone()
-        if row is not None:
-            self.login.error_text = u'Такой логин уже занят'
+    def validate(self):
+        con = connect()
+        try:
+            if self.password.value!=self.password2.value:
+                self.password.error_text = self.password2.error_text = u'Пароли не совпадают!'
+            row = self.con.execute(u'select id from Users where login = ?', [ self.login.value ]).fetchone()
+            if row is not None:
+                self.login.error_text = u'Такой логин уже занят'
+        finally: con.close()
     def on_submit(self):
         hash = sha.new(self.password.value).hexdigest()
-        cursor = self.con.execute(u'insert into Users(login, password, email, rating, disabled, reg_date) values(?, ?, ?, 1, 0, ?)',
-                             [ self.login.value, hash, self.email.value, datetime() ])
-        user_id = cursor.lastrowid
-        set_user(user_id)
-        get_session()['login'] = self.login.value
+        cursor = self.con.execute(u"insert into Users(login, password, email, rating, disabled, reg_date) values(?, ?, ?, 1, 0, ?)", # datetime('now','localtime')
+                             [ self.login.value, hash, self.email.value, datetime.now() ])
+        http.user = cursor.lastrowid
+        http.session['login'] = self.login.value
         self.con.commit()
-        
+        raise http.Redirect(url(main))
 
 @printhtml
 def registration_component():
