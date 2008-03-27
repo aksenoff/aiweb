@@ -27,12 +27,13 @@ class LoginForm(Form):
         self.grid[1, 2] = StaticText(link(u'Регистрация', register))
     def validate(self):
         con = connect()
-        row = self.con.execute(u'select id from Users where login = ?', [ self.login.value ]).fetchone()
+        row = con.execute(u'select id from Users where login = ?', [ self.grid[0, 1].value ]).fetchone()
         if row is None:
-            pass
+            raise http.Redirect(url(login_error))
         hash = sha.new(self.grid[1, 1].value).hexdigest()
         hash2 = con.execute('select password fron Users where id = ?', [ http.user ])
-        if hash!=hash2: pass
+        if hash!=hash2:
+            raise http.Redirect(url(login_error))
         con.close()        
     def on_submit(self):
         pass
@@ -59,7 +60,7 @@ class RegForm(Form):
                              [ self.login.value, hash, self.email.value, datetime.now() ])
         http.user = cursor.lastrowid
         http.session['login'] = self.login.value
-        self.con.commit()
+        con.commit()
         raise http.Redirect(url(main))
 
 @printhtml
@@ -97,5 +98,14 @@ def logout():
     set_user(None)
     print html(u"""$if (user) { До встречи, $user!}
                 <h2>Вы вышли</h2>""")
+
+@http('/login')
+@printhtml
+def login_error():
+    print u"Введенные Вами регистрационные данные неверны. Попробуйте еще раз."
+    f = LoginForm()
+    print f.header
+    print f.grid.tag
+    print '</form>'
 
 http.start()    
