@@ -1,6 +1,9 @@
 $(function(){
+  $("#tabs").tabs();
   $("input:submit").click(function(){
-  alert($("#id_0").text())
+    $.post("/ajax_post", { text: $("#id_0").val() }, function(data){
+       $("#messages").append("<P>" + $("#message", $(data)).text())
+    })
   return false
   })
 })
