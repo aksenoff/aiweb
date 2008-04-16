@@ -39,13 +39,17 @@ class User(Node):
             self.targets[message] = sign * karma_part / len(self.votes)
     def del_message(self, message):
         message.deleted = True
+        message.deleter = self
     def vote(self, message, sign):
         # True for "+" and False for "-"
         if self not in message.voters.keys():
             message.voters[self] = sign
             self.votes[message] = sign
             message.karma += sign
-        else: pass
+        else:
+            if message.voters[self] ^ sign:
+                del(message.voters[self])
+            else: pass                    
 
 class Message(Node):
     def __init__(self, user, number, parent=None, indent=0):
@@ -74,8 +78,6 @@ class Message(Node):
         for link in self.links_to: targets[link] = link_weight
         if self.deleted:
             self.parent.user.targets[self.user] = del_coeff
-    # def delete(self, deleter):
-    #    self.deleted
 
 class SyntaxError(Exception):
     def __init__(self, line_number, msg, line_text):

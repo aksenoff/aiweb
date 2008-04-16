@@ -108,4 +108,20 @@ def login_error():
     print f.grid.tag
     print '</form>'
 
-http.start()    
+@printhtml     #-----------?
+def get_quote(id):
+    con = connect()
+    rating, parent_id, caption, deleted, message_text, created, last_modified = \
+       con.execute(u'select rating, parent_id, caption, deleted, message_text, created, last_modified from Messages where id = ?', [id]).fetchone()
+    
+@http('/my')
+def home():
+    return html()
+
+class PostForm(Form):
+    def __init__(self):
+        pass
+
+    
+
+http.start()
