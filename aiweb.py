@@ -121,9 +121,6 @@ def get_quote(id):
     
 @http('/my')
 def home():
-   # con = connect()
-   # rating, parent_id, caption, deleted, message_text, created, last_modified = \
-   #    con.execute(u'select rating, parent_id, caption, deleted, message_text, created, last_modified from Messages where id = ?', [id]).fetchone()
     return html()
 
 class PostForm(Form):
