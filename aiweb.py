@@ -31,7 +31,7 @@ class LoginForm(Form):
         if row is None:
             raise http.Redirect(url(login_error))
         hash = sha.new(self.grid[1, 1].value).hexdigest()
-        hash2 = con.execute('select password fron Users where id = ?', [ http.user ])
+        hash2 = con.execute('select password from Users where id = ?', [ http.user ])
         if hash!=hash2:
             raise http.Redirect(url(login_error))
         con.close()        
@@ -50,18 +50,22 @@ class RegForm(Form):
         try:
             if self.password.value!=self.password2.value:
                 self.password.error_text = self.password2.error_text = u'Пароли не совпадают!'
-            row = self.con.execute(u'select id from Users where login = ?', [ self.login.value ]).fetchone()
+            row = con.execute(u'select id from Users where login = ?', [ self.login.value ]).fetchone()
             if row is not None:
                 self.login.error_text = u'Такой логин уже занят'
         finally: con.close()
     def on_submit(self):
-        hash = sha.new(self.password.value).hexdigest()
-        cursor = self.con.execute(u"insert into Users(login, password, email, rating, disabled, reg_date) values(?, ?, ?, 1, 0, ?)", # datetime('now','localtime')
-                             [ self.login.value, hash, self.email.value, datetime.now() ])
-        http.user = cursor.lastrowid
-        http.session['login'] = self.login.value
-        con.commit()
-        raise http.Redirect(url(main))
+        con = connect()
+        try:            
+            hash = sha.new(self.password.value).hexdigest()
+            cursor = con.execute(u"insert into Users(login, password, email, rating, disabled, reg_date) values(?, ?, ?, 1, 0, ?)", # datetime('now','localtime')
+                                 [ self.login.value, hash, self.email.value, datetime.now() ])
+            http.user = cursor.lastrowid
+            http.session['login'] = self.login.value
+            con.commit()
+        finally:
+            con.close()
+            raise http.Redirect(url(main))
 
 @printhtml
 def registration_component():
@@ -74,6 +78,7 @@ def registration_component():
         return
     con=connect()
     login = con.execute(u'select login from Users where id=?',[user_id]).fetchone()
+    set_user(login)
     print u'<h3>Вы вошли как: %s</h3>' % (login)
     print u'<p>%s</p>' % link(u'Выйти',logout)
     
@@ -108,7 +113,7 @@ def login_error():
     print f.grid.tag
     print '</form>'
 
-@printhtml     #-----------?
+@printhtml
 def get_quote(id):
     con = connect()
     rating, parent_id, caption, deleted, message_text, created, last_modified = \
@@ -116,6 +121,9 @@ def get_quote(id):
     
 @http('/my')
 def home():
+   # con = connect()
+   # rating, parent_id, caption, deleted, message_text, created, last_modified = \
+   #    con.execute(u'select rating, parent_id, caption, deleted, message_text, created, last_modified from Messages where id = ?', [id]).fetchone()
     return html()
 
 class PostForm(Form):
