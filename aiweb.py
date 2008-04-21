@@ -25,19 +25,18 @@ class LoginForm(Form):
         self.grid[1, 0] = StaticText(u'Пароль')
         self.grid[1, 1] = Password(size=10, tabindex=2)
         self.grid[1, 2] = StaticText(link(u'Регистрация', register))
-    def validate(self):
+    def on_submit(self):
+        1/0
         con = connect()
-        row = con.execute(u'select id from Users where login = ?', [ self.grid[0, 1].value ]).fetchone()
+        row = con.execute(u'select id, password from Users where login = ?', [ self.grid[0, 1].value ]).fetchone()
         if row is None:
             raise http.Redirect(url(login_error))
+        id, password = row
         hash = sha.new(self.grid[1, 1].value).hexdigest()
-        hash2 = con.execute('select password fron Users where id = ?', [ http.user ])
-        if hash!=hash2:
+        if hash != password:
             raise http.Redirect(url(login_error))
+        http.user = id
         con.close()        
-    def on_submit(self):
-        pass
-        
 
 class RegForm(Form):
     def __init__(self):
@@ -50,13 +49,14 @@ class RegForm(Form):
         try:
             if self.password.value!=self.password2.value:
                 self.password.error_text = self.password2.error_text = u'Пароли не совпадают!'
-            row = self.con.execute(u'select id from Users where login = ?', [ self.login.value ]).fetchone()
+            row = con.execute(u'select id from Users where login = ?', [ self.login.value ]).fetchone()
             if row is not None:
                 self.login.error_text = u'Такой логин уже занят'
         finally: con.close()
     def on_submit(self):
+        con = connect()
         hash = sha.new(self.password.value).hexdigest()
-        cursor = self.con.execute(u"insert into Users(login, password, email, rating, disabled, reg_date) values(?, ?, ?, 1, 0, ?)", # datetime('now','localtime')
+        cursor = con.execute(u"insert into Users(login, password, email, rating, disabled, reg_date) values(?, ?, ?, 1, 0, ?)", # datetime('now','localtime')
                              [ self.login.value, hash, self.email.value, datetime.now() ])
         http.user = cursor.lastrowid
         http.session['login'] = self.login.value
@@ -65,15 +65,16 @@ class RegForm(Form):
 
 @printhtml
 def registration_component():
-    user_id = get_user()
+    user_id = http.user
+    print user_id
     if user_id is None:
         f = LoginForm()
         print f.header
         print f.grid.tag
         print '</form>'
         return
-    con=connect()
-    login = con.execute(u'select login from Users where id=?',[user_id]).fetchone()
+    con = connect()
+    login = con.execute(u'select login from Users where id=?',[user_id]).fetchone()[0]
     print u'<h3>Вы вошли как: %s</h3>' % (login)
     print u'<p>%s</p>' % link(u'Выйти',logout)
     
