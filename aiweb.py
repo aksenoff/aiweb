@@ -26,7 +26,6 @@ class LoginForm(Form):
         self.grid[1, 1] = Password(size=10, tabindex=2)
         self.grid[1, 2] = StaticText(link(u'Регистрация', register))
     def on_submit(self):
-        1/0
         con = connect()
         row = con.execute(u'select id, password from Users where login = ?', [ self.grid[0, 1].value ]).fetchone()
         if row is None:
@@ -74,9 +73,13 @@ def registration_component():
         print '</form>'
         return
     con = connect()
-    login = con.execute(u'select login from Users where id=?',[user_id]).fetchone()[0]
-    print u'<h3>Вы вошли как: %s</h3>' % (login)
-    print u'<p>%s</p>' % link(u'Выйти',logout)
+    row = con.execute(u'select login from Users where id=?',[user_id]).fetchone()
+    if row is None:
+        pass
+    else:
+        login = row[0]
+        print u'<h3>Вы вошли как: %s</h3>' % (login)
+        print u'<p>%s</p>' % link(u'Выйти',logout)
     
 @http('/')
 @printhtml
