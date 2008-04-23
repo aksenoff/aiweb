@@ -145,9 +145,17 @@ def home(user_name, offset=0):
     else: print "There's no user called " + user_name + "!"
     print footer()
 
+@http('/posts/$user_name')
+def posts(user_name):
+    return html()
+
+@http('/comments/$user_name')
+def comments(user_name):
+    return html()
+
 class PostForm(Form):
     def __init__(self, message_id=None):
-        # message_id==Null if message is posted for the first time :)
+        # message_id==None if message is posted for the first time :)
         self.message_id = message_id
         self.caption = Text(u'Заголовок:', required=True)
         self.summary = TextArea(u'Краткой строкой:') # TODO: Summary(?)
@@ -158,30 +166,25 @@ class PostForm(Form):
             con = connect()
             self.caption.value, #self.summary.value,
             self.message.value = con.execute('select caption, message_text from Messages where id = ?', [ self.message_id ]).fetchone()
-            self.tags.value = u'' # !!!!!!!!!!!!!!!!!!!!!
+            self.tags.value = u'' # можно хранить в базе в строке
         else: self.submit = Submit(u'Запостить!')
-    def validate(self):
-        con = connect()
-        try:
-            self.tag_names = [] # !!!!!!!!!!!!!!!!!!!!!
-            for tag_name in self.tag_names:
-                if tag_name not in con.execute('select name from Tags'):
-                    self.tags.error_text = u'Неправильный(е) теги(и)!'
-        finally: con.close()
     def on_submit(self):
+        self.tag_names = set(self.tags.value.split())
         user_id = get_user()
         con = connect()
+        now = datetime.now()
         if self.message_id:
             con.execute('update messages set last_modified = ?, caption = ?, message_text = ? where id = ?',
-                        [ datetime.now(), self.caption.value, self.message.value, self.message_id ])
+                        [ now, self.caption.value, self.message.value, self.message_id ])
             con.execute('delete from MessageTags where message_id = ?', [ self.message_id ])
         else:
-            con.execute('insert into Messages (rating, author_id, parent_id, deleted, created, last_modified, caption, message_text)\
-                        values(0, ?, 0, 0, ?, ?, ?, ?)', [ user_id, datetime.now(), datetime.now(), self.caption.value, self.message.value ])
-            self.message_id = con.execute('select id from Messages where message_text = ?', [ self.message.value ]).fetchone() # ха-ха-ха!
+            cur = con.execute('insert into Messages (rating, author_id, parent_id, deleted, created, last_modified, caption, message_text)\
+                              values(0, ?, 0, 0, ?, ?, ?, ?)', [ user_id, now, now, self.caption.value, self.message.value ])
+            self.message_id = cur.lastrowid
         for tag_name in self.tag_names:
             tag_id = con.execute('select id from Tags where name = ?', [ tag_name ]).fetchone()
-            con.execute('insert into MessageTags values (?, ?)', [ self.message_id, tag_id ]) 
+            con.execute('insert into MessageTags values (?, ?)', [ self.message_id, tag_id ])
+        con.commit()
 
 class CommentForm(Form):
     def __init__(self, parent_id, parent_caption, message_id=None):
@@ -196,19 +199,19 @@ class CommentForm(Form):
             con = connect()
             self.caption.value, self.message.value = con.execute('select caption, message_text from Messages where id = ?', [ self.message_id ]).fetchone()
         else: self.submit = Submit(u'Откомментить!')
-    def validate(self):
-        pass
     def on_submit(self):
         user_id = get_user()
         if self.caption.value=="":
             self.caption.value = u'Re: ' + self.parent_caption
         con = connect()
+        now = datetime.now()
         if self.message_id:
             con.execute('update Messages set last_modified = ?, caption = ?, message_text = ? where id = ?',
-                        [ datetime.now(), self.caption.value, self.message.value, self.message_id ])
+                        [ now, self.caption.value, self.message.value, self.message_id ])
             con.execute('delete from MessageTags where message_id = ?', [ self.message_id ])
         else:
             con.execute('insert into Messages (rating, author_id, parent_id, deleted, created, last_modified, caption, message_text)\
-                        values(0, ?, ?, 0, ?, ?, ?, ?)', [ user_id, self.parent_id, datetime.now(), datetime.now(), self.caption.value, self.message.value ])    
+                        values(0, ?, ?, 0, ?, ?, ?, ?)', [ user_id, self.parent_id, now, now, self.caption.value, self.message.value ])
+        con.commit()
 
 http.start()

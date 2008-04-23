@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Tabs 3 - New Wave Tabs
  *
  * Copyright (c) 2007 Klaus Hartl (stilbuero.de)
@@ -46,7 +46,7 @@
             // TODO bookmarkable: $.ajaxHistory ? true : false,
 
             // Ajax
-            spinner: 'Loading&#8230;',
+            spinner: 'Загрузка&#8230;',
             cache: false,
             idPrefix: 'ui-tabs-',
             ajaxOptions: {},
