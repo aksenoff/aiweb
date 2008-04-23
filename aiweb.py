@@ -73,12 +73,12 @@ def registration_component():
         return
     con = connect()
     row = con.execute(u'select login from Users where id = ?', [ user_id ]).fetchone()
-    if row is None:
-        pass
-    else:
+    if row:
         login = row[0]
         print u'<h3>Вы вошли как: %s</h3>' % (login)
         print u'<p>%s</p>' % link(u'Выйти',logout)
+        return
+    print u"Внутренняя ошибка базы данных!"
     
 @http('/')
 @printhtml
@@ -97,10 +97,18 @@ def register():
 @http('/logout')
 @printhtml
 def logout():
-    user = get_session()['login']
-    set_user(None)
-    print html(u"""$if (user) { До встречи, $user!}
-                <h2>Вы вышли</h2>""")
+    user = http.user
+    if user:
+        con = connect()
+        row = con.execute(u'select login from Users where id = ?', [ user ]).fetchone()
+        if row:
+            user = row[0]
+            http.user = None
+            print u'<meta http-equiv="Refresh" content="3; URL=%s">' % url(main)
+            print u"<h2>До встречи, %s! Вы вышли</h2>" % user
+            return
+    http.user = None
+    raise http.Redirect(url(main))
 
 @http('/login')
 @printhtml
@@ -116,6 +124,7 @@ def get_quote(id):
     con = connect()
     rating, parent_id, caption, deleted, message_text, created, last_modified = \
        con.execute(u'select rating, parent_id, caption, deleted, message_text, created, last_modified from Messages where id = ?', [id]).fetchone()
+    con.close()
 
 @printhtml
 def header():
