@@ -65,7 +65,6 @@ class RegForm(Form):
 @printhtml
 def registration_component():
     user_id = http.user
-    print user_id
     if user_id is None:
         f = LoginForm()
         print f.header
@@ -73,7 +72,7 @@ def registration_component():
         print '</form>'
         return
     con = connect()
-    row = con.execute(u'select login from Users where id=?',[user_id]).fetchone()
+    row = con.execute(u'select login from Users where id = ?', [ user_id ]).fetchone()
     if row is None:
         pass
     else:
