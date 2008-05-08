@@ -75,7 +75,7 @@ def registration_component():
     row = con.execute(u'select login from Users where id = ?', [ user_id ]).fetchone()
     if row:
         login = row[0]
-        print u'<h3>Вы вошли как: %s</h3>' % (login)
+        print u'<h3>Вы вошли как: %s</h3>' % link(login, home, login)
         print u'<p>%s</p>' % link(u'Выйти',logout)
         return
     print u"Внутренняя ошибка базы данных!"
@@ -141,6 +141,7 @@ def home(user_name, offset=0):
     con = connect()
     row = con.execute('select id from Users where login = ?', [ user_name ]).fetchone()
     if row:
+        viewed_id = row[0]
         print html()
     else: print "There's no user called " + user_name + "!"
     print footer()
@@ -157,31 +158,39 @@ class PostForm(Form):
     def __init__(self, message_id=None):
         # message_id==None if message is posted for the first time :)
         self.message_id = message_id
-        self.caption = Text(u'Заголовок:', required=True)
-        self.summary = TextArea(u'Краткой строкой:') # TODO: Summary(?)
-        self.tags = Text(u'Теги:')       # TODO: Tags
-        self.message = TextArea(u'Текст сообщения:', required=True)
+        self.caption = Text(u'Заголовок', required=True)
+        self.summary = TextArea(u'Краткой строкой')
+        self.tag_string = Text(u'Теги')
+        self.message = TextArea(u'Текст сообщения', required=True)
         if self.message_id:
             self.submit = Submit(u'Сохранить')
             con = connect()
-            self.caption.value, #self.summary.value,
-            self.message.value = con.execute('select caption, message_text from Messages where id = ?', [ self.message_id ]).fetchone()
-            self.tags.value = u'' # можно хранить в базе в строке
+            self.caption.value, self.summary.value, self.message.value, self.tag_string.value = \
+                con.execute('select caption, summary, message_text, tags from Messages where id = ?', [ self.message_id ]).fetchone()
         else: self.submit = Submit(u'Запостить!')
     def on_submit(self):
-        self.tag_names = set(self.tags.value.split())
-        user_id = get_user()
+        tag_string = self.tag_string.value.strip()
+        tag_names = set(tag_string.split())
+        summary = self.summary.value.strip()
+        message = self.message.value
+        if not summary and len(message) > 100:
+            end = 100
+            while message[end].isalnum(): end -= 1
+            while not message[end].isalnum(): end -= 1
+            summary = message[:end+1] + "..."
+
+        user_id = http.user
         con = connect()
         now = datetime.now()
         if self.message_id:
-            con.execute('update messages set last_modified = ?, caption = ?, message_text = ? where id = ?',
-                        [ now, self.caption.value, self.message.value, self.message_id ])
+            con.execute('update messages set last_modified = ?, caption = ?, message_text = ?, summary = ?, tags = ? where id = ?',
+                        [ now, self.caption.value, message, summary, tag_string, self.message_id ])
             con.execute('delete from MessageTags where message_id = ?', [ self.message_id ])
         else:
-            cur = con.execute('insert into Messages (rating, author_id, parent_id, deleted, created, last_modified, caption, message_text)\
-                              values(0, ?, 0, 0, ?, ?, ?, ?)', [ user_id, now, now, self.caption.value, self.message.value ])
+            cur = con.execute('insert into Messages (rating, author_id, parent_id, deleted, created, last_modified, caption, message_text, summary, tags)\
+                              values(0, ?, 0, 0, ?, ?, ?, ?, ?, ?)', [ user_id, now, now, self.caption.value, message, summary, tag_string ])
             self.message_id = cur.lastrowid
-        for tag_name in self.tag_names:
+        for tag_name in tag_names:
             tag_id = con.execute('select id from Tags where name = ?', [ tag_name ]).fetchone()
             con.execute('insert into MessageTags values (?, ?)', [ self.message_id, tag_id ])
         con.commit()
@@ -192,16 +201,16 @@ class CommentForm(Form):
         self.parent_id = parent_id
         self.parent_caption = parent_caption
         self.message_id = message_id
-        self.caption = Text(u'Заголовок:')
-        self.message = TextArea(u'Текст комментария:', required=True)
+        self.caption = Text(u'Заголовок')
+        self.message = TextArea(u'Текст комментария', required=True)
         if self.message_id:
             self.submit = Submit(u'Сохранить')
             con = connect()
             self.caption.value, self.message.value = con.execute('select caption, message_text from Messages where id = ?', [ self.message_id ]).fetchone()
         else: self.submit = Submit(u'Откомментить!')
     def on_submit(self):
-        user_id = get_user()
-        if self.caption.value=="":
+        user_id = http.user
+        if self.caption.value=="" and self.parent_caption[:3]!="Re:":
             self.caption.value = u'Re: ' + self.parent_caption
         con = connect()
         now = datetime.now()

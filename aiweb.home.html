@@ -5,7 +5,11 @@
 <script src="/static/jquery.js" type="text/javascript"></script>
 <script src="/static/ui.tabs.js" type="text/javascript"></script>
 <script type="text/javascript">
-            $$(function() {$$('#list > ul').tabs();});
+	$$(function() {
+            	$$('#tabs > ul').tabs();
+            	$$('#posts').load("$url(posts, user_name)");
+            	$$('#comments').load("$url(comments, user_name)");
+	});
 </script>
 <body>
 	  <div class="container">
@@ -19,11 +23,18 @@
                    </div>
 		   <div class="span-12 colborder">
 		   	<div class="span-12 last">
-                        	<div id="list">
+                        	<div id="tabs">
           				<ul>
-                				<li><a href="$url(posts, user_name)" title="View your posts"><span>Posts</span></a></li>
-                				<li><a href="$url(comments, user_name)" title="View your comments"><span>Comments</span></a></li>
+                				<li><a href="#posts_tab" title="View your posts"><span>Posts</span></a></li>
+                				<li><a href="#comments_tab" title="View your comments"><span>Comments</span></a></li>
             				</ul>
+					<div id="posts_tab">
+						<div id="posts"></div>
+						$if(viewed_id==http.user) {$PostForm()}
+					</div>
+					<div id="comments_tab">
+						<div id="comments"></div>
+					</div>
         </div>                       	
                    	</div>
                    </div>
