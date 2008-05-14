@@ -1,7 +1,12 @@
-posts of $user_name :)
-$for(i in range(10)) {
-<div class="span-12 last">
+posts of $user_name, $user_id :)<br>
+$for(tags, created, last_modified, caption, summary, message_text in messages) {
+Тэги: $(tags)<br>
+Создано: $(created[:-7])<br>
+Последнее изменение: $(last_modified[:-7])<br>
+Заголовок: $(caption)<br>
+Краткой строкой: $(summary)<br>
+Текст сообщения: $(message_text)<br>
+<hr/>
+}
 
-</div><hr/>
-}                   	
 

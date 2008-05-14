@@ -142,11 +142,15 @@ def home(user_name, offset=0):
 @http('/posts/$user_name')
 def posts(user_name):
     con = connect()
-    user_id = con.execute('select id from Users where login = ?', user_name)
+    user_id = con.execute('select id from Users where login = ?', [ user_name ]).fetchone()
+    if user_id is None: raise http.NotFound
+    user_id = user_id[0]
     if user_id==http.user: my = True
     else: my = False
-    tags, created, last_modified, caption, summary, message_text = \
-          con.execute('select tags, created, last_modified, caption, summary, message_text from Messages where author_id = ? and parent_id = 0', [ user_id ]).fetchone()
+    messages = con.execute(
+        'select tags, created, last_modified, caption, summary, message_text '
+        'from Messages where author_id = ? and parent_id = 0', [ user_id ])
+    http.request.use_xslt = False
     return html()
 
 @http('/comments/$user_name')
