@@ -120,13 +120,6 @@ def login_error():
     print '</form>'
 
 @printhtml
-def get_quote(id):
-    con = connect()
-    rating, parent_id, caption, deleted, message_text, created, last_modified = \
-       con.execute(u'select rating, parent_id, caption, deleted, message_text, created, last_modified from Messages where id = ?', [id]).fetchone()
-    con.close()
-
-@printhtml
 def header():
     pass
 
@@ -148,6 +141,12 @@ def home(user_name, offset=0):
 
 @http('/posts/$user_name')
 def posts(user_name):
+    con = connect()
+    user_id = con.execute('select id from Users where login = ?', user_name)
+    if user_id==http.user: my = True
+    else: my = False
+    tags, created, last_modified, caption, summary, message_text = \
+          con.execute('select tags, created, last_modified, caption, summary, message_text from Messages where author_id = ? and parent_id = 0', [ user_id ]).fetchone()
     return html()
 
 @http('/comments/$user_name')
@@ -178,7 +177,6 @@ class PostForm(Form):
             while message[end].isalnum(): end -= 1
             while not message[end].isalnum(): end -= 1
             summary = message[:end+1] + "..."
-
         user_id = http.user
         con = connect()
         now = datetime.now()
