@@ -148,11 +148,11 @@ def posts(user_name):
     user_id = user_id[0]
     if user_id==http.user: my = True
     else: my = False
-    no_messages = True if con.execute('select id from Messages where author_id = ? and parent_id = 0', [ user_id ]).fetchone() is None else False
+    no_messages = True if con.execute('select id from Messages where author_id = ? and parent_id is null', [ user_id ]).fetchone() is None else False
     if not no_messages:
         messages = con.execute(
             'select id, tags, created, last_modified, caption, summary, message_text '
-            'from Messages where author_id = ? and parent_id = 0', [ user_id ])
+            'from Messages where author_id = ? and parent_id is null', [ user_id ])
     http.request.use_xslt = False
     return html()
 
@@ -164,11 +164,11 @@ def comments(user_name):
     user_id = user_id[0]
     if user_id==http.user: my = True
     else: my = False
-    no_messages = True if con.execute('select id from Messages where author_id = ? and parent_id <> 0', [ user_id ]).fetchone() is None else False
+    no_messages = True if con.execute('select id from Messages where author_id = ? and parent_id is not null', [ user_id ]).fetchone() is None else False
     if not no_messages:
         messages = con.execute(
             'select id, created, parent_id, deleted, last_modified, caption, message_text '
-            'from Messages where author_id = ? and parent_id <> 0', [ user_id ])
+            'from Messages where author_id = ? and parent_id is not null', [ user_id ])
     http.request.use_xslt = False
     return html()
 
@@ -226,8 +226,9 @@ class PostForm(Form):
                         [ now, self.caption.value, message, summary, tag_string, self.message_id ])
             con.execute('delete from MessageTags where message_id = ?', [ self.message_id ])
         else:
-            cur = con.execute('insert into Messages (rating, author_id, parent_id, deleted, created, last_modified, caption, message_text, summary, tags)\
-                              values(0, ?, 0, 0, ?, ?, ?, ?, ?, ?)', [ user_id, now, now, self.caption.value, message, summary, tag_string ])
+            cur = con.execute('insert into Messages (offset, author_id, created, last_modified, caption, message_text, summary, tags)'
+                              ' values((select max(offset)+1 from Messages where author_id=? and parent_id is null), ?, ?, ?, ?, ?, ?, ?)',
+                              [ user_id, user_id, now, now, self.caption.value, message, summary, tag_string ])
             self.message_id = cur.lastrowid
         for tag_name in tag_names:
             tag_id = con.execute('select id from Tags where name = ?', [ tag_name ]).fetchone()
