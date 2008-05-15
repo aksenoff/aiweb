@@ -13,8 +13,11 @@
 </script>
 <body>
 	  <div class="container">
-	  	   <div class="span-24 last">
+	  	   <div class="span-18">
 			<h1>$(user_name)'s homepage</h1>
+		   </div>
+      <div class="span-6 last">
+                        $registration_component()
 		   </div>
                    <div class="span-5 colborder">
 			<div class="span-5 last">
@@ -30,7 +33,7 @@
             				</ul>
 					<div id="posts_tab">
 						<div id="posts"></div>
-						$if(viewed_id==http.user) {$PostForm()}
+						$if(my) {$PostForm()}
 					</div>
 					<div id="comments_tab">
 						<div id="comments"></div>
