@@ -1,5 +1,5 @@
 posts of $user_name :)<br>
-$if(no_messages){<p>You poorly have no posts yet...</p>}
+$if(not messages){<p>You poorly have no posts yet...</p>}
 $else{
 $for(id, tags, created, last_modified, caption, summary, message_text in messages) {
 в§уш: $(tags)<br>

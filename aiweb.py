@@ -127,37 +127,32 @@ def header():
 def footer():
     pass
     
-@http('/$user_name?start=$offset')
+@http('/$user_name?start=$start')
 @printhtml
-def home(user_name, offset=0):
+def home(user_name, start=1):
     print header()
     con = connect()
     user_id = con.execute('select id from Users where login = ?', [ user_name ]).fetchone()
     if user_id is None: raise http.NotFound
     user_id = user_id[0]
-    if user_id==http.user: my = True
-    else: my = False
+    my = user_id==http.user
     print html()
-    print footer()
 
-@http('/posts/$user_name')
-def posts(user_name):
+@http('/posts/$user_name?start=$start')
+def posts(user_name, start=1):
     con = connect()
     user_id = con.execute('select id from Users where login = ?', [ user_name ]).fetchone()
     if user_id is None: raise http.NotFound
     user_id = user_id[0]
-    if user_id==http.user: my = True
-    else: my = False
-    no_messages = True if con.execute('select id from Messages where author_id = ? and parent_id is null', [ user_id ]).fetchone() is None else False
-    if not no_messages:
-        messages = con.execute(
-            'select id, tags, created, last_modified, caption, summary, message_text '
-            'from Messages where author_id = ? and parent_id is null', [ user_id ])
+    my = user_id==http.user
+    messages = con.execute('select id, tags, created, last_modified, caption, summary, message_text '
+                           'from Messages where author_id = ? and parent_id is null and offset >= ?'
+                           'order by offset limit 10', [ user_id, start-1]).fetchall()
     http.request.use_xslt = False
     return html()
 
-@http('/comments/$user_name')
-def comments(user_name):
+@http('/comments/$user_name?start=$start')
+def comments(user_name, start=1):
     con = connect()
     user_id = con.execute('select id from Users where login = ?', [ user_name ]).fetchone()
     if user_id is None: raise http.NotFound
@@ -166,29 +161,27 @@ def comments(user_name):
     else: my = False
     no_messages = True if con.execute('select id from Messages where author_id = ? and parent_id is not null', [ user_id ]).fetchone() is None else False
     if not no_messages:
-        messages = con.execute(
+        messages = con.execute(     ## todo: переделать
             'select id, created, parent_id, deleted, last_modified, caption, message_text '
             'from Messages where author_id = ? and parent_id is not null', [ user_id ])
     http.request.use_xslt = False
     return html()
 
-@http('/$user_name/$message_id?start=$offset')
-def message_thread(user_name, message_id, offset=0):
+@http('/$user_name/$message_id?start=$start')
+def message_thread(user_name, message_id, start=1):
     con = connect()
     user_id = con.execute('select id from Users where login = ?', [ user_name ]).fetchone()
     if user_id is None: raise http.NotFound
     user_id = user_id[0]
-    if user_id==http.user: my = True
-    else: my = False
+    my = user_id==http.user
     main_message = con.execute(                                                                             #TODO: posts and comments differ in representation
         'select id, tags, author_id, parent_id, deleted, created, last_modified, caption, summary, message_text '
         'from Messages where id = ? and author_id = ?', [ message_id, user_id ]).fetchone()
     if main_message is None: raise http.NotFound
-   ## main_message = main_message[0]
     m_id, m_tags, m_author_id, m_parent_id, m_deleted, m_created, m_last_modified, m_caption, m_summary, m_message_text = main_message
     post = False if m_parent_id else True
     no_comments = True if con.execute('select id from Messages where parent_id = ?', [ message_id ]).fetchone() is None else False
-    if not no_comments:
+    if not no_comments:    ## todo: переделать
         comments = con.execute(
             'select id, author_id, deleted, created, last_modified, caption, message_text '
             'from Messages where parent_id = ?', [ message_id ])
@@ -227,7 +220,7 @@ class PostForm(Form):
             con.execute('delete from MessageTags where message_id = ?', [ self.message_id ])
         else:
             cur = con.execute('insert into Messages (offset, author_id, created, last_modified, caption, message_text, summary, tags)'
-                              ' values((select max(offset)+1 from Messages where author_id=? and parent_id is null), ?, ?, ?, ?, ?, ?, ?)',
+                              ' values((select coalesce(max(offset)+1, 0) from Messages where author_id=? and parent_id is null), ?, ?, ?, ?, ?, ?, ?)',
                               [ user_id, user_id, now, now, self.caption.value, message, summary, tag_string ])
             self.message_id = cur.lastrowid
         for tag_name in tag_names:
@@ -258,9 +251,10 @@ class CommentForm(Form):
             con.execute('update Messages set last_modified = ?, caption = ?, message_text = ? where id = ?',
                         [ now, self.caption.value, self.message.value, self.message_id ])
             con.execute('delete from MessageTags where message_id = ?', [ self.message_id ])
-        else:
-            con.execute('insert into Messages (rating, author_id, parent_id, deleted, created, last_modified, caption, message_text)\
-                        values(0, ?, ?, 0, ?, ?, ?, ?)', [ user_id, self.parent_id, now, now, self.caption.value, self.message.value ])
+        else: ##todo: offset
+            con.execute('insert into Messages (offset, author_id, parent_id, created, last_modified, caption, message_text) '
+                        'values((select coalesce(max(offset)+1, 0) from Messages where parent_id=?), ?, ?, ?, ?, ?, ?)',
+                        [ self.parent_id, user_id, self.parent_id, now, now, self.caption.value, self.message.value ])
         con.commit()
 
 http.start()
