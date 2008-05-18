@@ -134,9 +134,9 @@ def pages(type, pn=1, user_id=0, parent_id=0):
     # type == 3 : Pages for comments on message thread
     con = connect()
     if type == 1: nmessages = con.execute('select count(*) from Messages '
-                                          'where user_id = ? and parent_id is None', [ user_id ]).fetchone()[0]
+                                          'where author_id = ? and parent_id is null', [ user_id ]).fetchone()[0]
     if type == 2: nmessages = con.execute('select count(*) from Messages '
-                                          'where user_id = ? and parent_id is not None', [ user_id ]).fetchone()[0]
+                                          'where author_id = ? and parent_id is not null', [ user_id ]).fetchone()[0]
     if type == 3: nmessages = con.execute('select count(*) from Messages '
                                           'where parent_id = ?', [ parent_id ]).fetchone()[0]
     user_name = con.execute('select login from Users where id = ?', [ user_id ]).fetchone()[0]
@@ -145,7 +145,8 @@ def pages(type, pn=1, user_id=0, parent_id=0):
     for i in range(1, npages+1):
         if i == pn: print '<strong>[%d]</strong>' % i
         else:
-            if type in (1,2): print '[%s] ' % link(str(i), home, user_name, (i-1)*10+1)
+            if type == 1: print '[%s] ' % link(str(i), posts, user_name, (i-1)*10+1)
+            if type == 2: print '[%s] ' % link(str(i), comments, user_name, (i-1)*10+1)
             if type == 3: print '[%s] ' % link(str(i), message_thread, user_name, parent_id, (i-1)*10+1)
     print '<hr>'
     
@@ -238,9 +239,10 @@ class PostForm(Form):
                         [ now, self.caption.value, message, summary, tag_string, self.message_id ])
             con.execute('delete from MessageTags where message_id = ?', [ self.message_id ])
         else:
-            cur = con.execute('insert into Messages (offset, author_id, created, last_modified, caption, message_text, summary, tags)'
-                              ' values((select coalesce(max(offset)+1, 0) from Messages where author_id=? and parent_id is null), ?, ?, ?, ?, ?, ?, ?)',
-                              [ user_id, user_id, now, now, self.caption.value, message, summary, tag_string ])
+            cur = con.execute(
+                'insert into Messages (offset, author_id, created, last_modified, caption, message_text, summary, tags)'
+                ' values((select coalesce(max(offset)+1, 0) from Messages where author_id=? and parent_id is null), ?, ?, ?, ?, ?, ?, ?)',
+                [ user_id, user_id, now, now, self.caption.value, message, summary, tag_string ])
             self.message_id = cur.lastrowid
         for tag_name in tag_names:
             tag_id = con.execute('select id from Tags where name = ?', [ tag_name ]).fetchone()
@@ -258,7 +260,8 @@ class CommentForm(Form):
         if self.message_id:
             self.submit = Submit(u'Сохранить')
             con = connect()
-            self.caption.value, self.message.value = con.execute('select caption, message_text from Messages where id = ?', [ self.message_id ]).fetchone()
+            self.caption.value, self.message.value = con.execute(
+                'select caption, message_text from Messages where id = ?', [ self.message_id ]).fetchone()
         else: self.submit = Submit(u'Откомментить!')
     def on_submit(self):
         user_id = http.user
@@ -272,7 +275,7 @@ class CommentForm(Form):
             con.execute('delete from MessageTags where message_id = ?', [ self.message_id ])
         else:
             con.execute('insert into Messages (offset, author_id, parent_id, created, last_modified, caption, message_text) '
-                        'values((select coalesce(max(offset)+1, 0) from Messages where parent_id=?), ?, ?, ?, ?, ?, ?)',
+                        'values((select coalesce(max(offset)+1, 0) from Messages where parent_id = ?), ?, ?, ?, ?, ?, ?)',
                         [ self.parent_id, user_id, self.parent_id, now, now, self.caption.value, self.message.value ])
         con.commit()
 
