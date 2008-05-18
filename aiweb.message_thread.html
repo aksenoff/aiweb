@@ -1,56 +1,67 @@
 <link default>
 <link rel="stylesheet" href="/static/plugins/fancy-type/screen.css" type="text/css" media="screen, projection">
-<title>user homepage</title>
+<title>Просмотр ветки</title>
 <body>
 	<div class="container">
 		<div class="span-18">
-			<h1>message thread</h1>
+			<h1>Просмотр ветки</h1>
 		</div>
 		<div class="span-6 last">
 			$registration_component()
 		</div>
-		<div class="span-5 colborder">
-			<div class="span-5 last">
-				<h2>Pohozhie polzovateli</h2>
+		<div class="span-24 last">
+			<div class="span-5 colborder">
+				<h2>Информация об авторе</h2>
+				Автор: $link(m_user_name, home, m_user_name)<br/>
 			</div>
-		</div>
-		<div class="span-12 colborder">
-			<div class="span-12 last" id="main_message">
-				Главное сообщение треда:<br>
-				$if(post){Теги: $(m_tags)<br>}
-				Автор: $(m_author_id)<br>
-				$if(not post){Парент: $(m_parent_id)<br>}
-				$if(not post){Удалено: $(m_deleted)<br>}
-				Создано: $(m_created[:-7])<br>
-				Последнее изменение: $(m_last_modified[:-7])<br>
-				Заголовок: $(m_caption)<br>
-				$if(post){Краткой строкой: $(m_summary)<br>}
-				Текст сообщения: $(m_message_text)<br>
-				<hr/>                     	
-			</div>
-			<div class="span-12 last" id="comments">
-				$if(not comments_list){<p>No comments for this message...</p>}
-				$else{
-				$for(id, author_id, login, deleted, created, last_modified, caption, message_text in comments_list) {
-				id: $(id)<br>
-				Автор: $(author_id) $(login)<br>
-				Удалено: $(deleted)<br>
-				Создано: $(created[:-7])<br>
-				Последнее изменение: $(last_modified[:-7])<br>
-				Заголовок: $link(caption, message_thread, login, id)<br>
-				Текст сообщения: $(message_text)<br>
-				<hr/>}}
-			</div>
-			<div class="span-12 last" id="comment_form">
-				$if(http.user){Оставьте свой коммент: $CommentForm(m_id, m_caption)}
-			</div>
+		    <div class="span-12 colborder">
+			    <h2>Главное сообщение ветки:</h2> 
+			    $if(post){Теги: $(m_tags)<br/>}
 
-		</div>
-		<div class="span-5 last">
-			<div class="span-5 last">
-				<h2>Calendar</h2>
+			    $if(not post){Удалено: $(m_deleted)<br/>}
+			    Создано: $(m_created[:-7])<br/>
+			    Последнее изменение: $(m_last_modified[:-7])<br/>
+			    Заголовок: $(m_caption)<br/>
+			    $if(post){Краткой строкой: $(m_summary)<br/>}
+			    Текст сообщения: $(m_message_text)<br/>                    	
+		    </div>
+		    <div class="span-5 last">
+				<h2>Панель управления</h2>
+			    $if(not post){$link(u"К родительской ветке", message_thread, m_parent_author_name, m_parent_id)<br/>}
 			</div>
+			<hr/> 
+		  </div>		  
+		  $if(not comments_list){
+		  <div class="span-12 last prepend-6">
+		    На это сообщение не оставлено ни одного комментария...</p>
+		  </div>}
+		  $else{
+		  <div class="span-12 last prepend-6">
+		    <h2>Комментарии</h2>
+		  </div>
+		  $for(id, author_id, login, deleted, created, last_modified, caption, message_text in comments_list) {
+		  <div class="span-24 last">
+			<div class="span-5 colborder">
+				<h3>Информация об авторе</h3>
+				Автор: $link(login, home, login)<br/>
+			</div>
+			<div class="span-12 colborder" id="comments">				
+				id: $(id)<br/>
+				Удалено: $(deleted)<br/>
+				Создано: $(created[:-7])<br/>
+				Последнее изменение: $(last_modified[:-7])<br/>
+				Заголовок: $link(caption, message_thread, login, id)<br/>
+				Текст сообщения: $(message_text)<br/>
+			</div>
+		    <div class="span-5 last">
+				<h2>Панель управления</h2>
+		    </div>
+		    <hr/>
+		</div>}}
+		<div class="span-12 last prepend-6" id="comment_form">
+			$if(http.user){Оставьте свой комментарий: $CommentForm(m_id, m_caption)}
 		</div>
-	</div>
+
+	</div>	
 </body>
 </html>

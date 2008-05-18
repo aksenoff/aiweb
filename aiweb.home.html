@@ -14,7 +14,7 @@
 <body>
 	  <div class="container">
 	  	   <div class="span-18">
-			<h1>$(user_name)'s homepage</h1>
+			<h1>Домашняя страница пользователя $(user_name)</h1>
 		   </div>
       <div class="span-6 last">
                         $registration_component()
@@ -28,8 +28,8 @@
 		   	<div class="span-12 last">
                         	<div id="tabs">
 					<ul>
-                				<li><a href="#posts_tab" title="View your posts"><span>Posts</span></a></li>
-                				<li><a href="#comments_tab" title="View your comments"><span>Comments</span></a></li>
+                				<li><a href="#posts_tab" title="$if(my){Просмотр Ваших постов}$else{Просмотр постов пользователя $(user_name)}"><span>Посты</span></a></li>
+                				<li><a href="#comments_tab" title="$if(my){Просмотр Ваших комментариев}$else{Просмотр комментариев пользователя $(user_name)}"><span>Комментарии</span></a></li>
             				</ul>
 					<div id="posts_tab">
 						<div id="posts"></div>

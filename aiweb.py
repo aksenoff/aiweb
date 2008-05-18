@@ -176,6 +176,8 @@ def message_thread(m_user_name, message_id, start=1):
     if main_message is None: raise http.NotFound
     m_id, m_tags, m_author_id, m_parent_id, m_deleted, m_created, m_last_modified, m_caption, m_summary, m_message_text = main_message
     post = False if m_parent_id else True
+    if not post:
+        m_parent_author_name = con.execute('select login from Users where id = (select author_id from Messages where id = ?)', [ m_parent_id ]).fetchone()[0]
     comments_list = con.execute('select Messages.id, author_id, login, deleted, created, last_modified, caption, message_text '
                                 'from Messages, Users where parent_id = ? and offset >= ? and author_id = Users.id '
                                 'order by offset limit 10', [ message_id, start-1]).fetchall()
