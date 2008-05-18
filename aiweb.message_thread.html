@@ -9,6 +9,7 @@
 		<div class="span-6 last">
 			$registration_component()
 		</div>
+		<hr />
 		<div class="span-24 last">
 			<div class="span-5 colborder">
 				<h2>Информация об авторе</h2>
@@ -17,7 +18,6 @@
 		    <div class="span-12 colborder">
 			    <h2>Главное сообщение ветки:</h2> 
 			    $if(post){Теги: $(m_tags)<br/>}
-
 			    $if(not post){Удалено: $(m_deleted)<br/>}
 			    Создано: $(m_created[:-7])<br/>
 			    Последнее изменение: $(m_last_modified[:-7])<br/>
@@ -38,6 +38,7 @@
 		  $else{
 		  <div class="span-12 last prepend-6">
 		    <h2>Комментарии</h2>
+		    $pages(3, (start-1)/10+1, m_user_id, message_id)
 		  </div>
 		  $for(id, author_id, login, deleted, created, last_modified, caption, message_text in comments_list) {
 		  <div class="span-24 last">
@@ -54,7 +55,7 @@
 				Текст сообщения: $(message_text)<br/>
 			</div>
 		    <div class="span-5 last">
-				<h2>Панель управления</h2>
+				<h3>Панель управления</h3>
 		    </div>
 		    <hr/>
 		</div>}}

@@ -126,6 +126,28 @@ def header():
 @printhtml
 def footer():
     pass
+
+@printhtml
+def pages(type, pn=1, user_id=0, parent_id=0):
+    # type == 1 : Pages for Posts tab on user homepage
+    # type == 2 : Pages for Comments tab on user homepage
+    # type == 3 : Pages for comments on message thread
+    con = connect()
+    if type == 1: nmessages = con.execute('select count(*) from Messages '
+                                          'where user_id = ? and parent_id is None', [ user_id ]).fetchone()[0]
+    if type == 2: nmessages = con.execute('select count(*) from Messages '
+                                          'where user_id = ? and parent_id is not None', [ user_id ]).fetchone()[0]
+    if type == 3: nmessages = con.execute('select count(*) from Messages '
+                                          'where parent_id = ?', [ parent_id ]).fetchone()[0]
+    user_name = con.execute('select login from Users where id = ?', [ user_id ]).fetchone()[0]
+    if nmessages < 11: return
+    npages = (nmessages / 10) + 1
+    for i in range(1, npages+1):
+        if i == pn: print '<strong>[%d]</strong>' % i
+        else:
+            if type in (1,2): print '[%s] ' % link(str(i), home, user_name, (i-1)*10+1)
+            if type == 3: print '[%s] ' % link(str(i), message_thread, user_name, parent_id, (i-1)*10+1)
+    print '<hr>'
     
 @http('/$user_name?start=$start')
 @printhtml
@@ -177,10 +199,11 @@ def message_thread(m_user_name, message_id, start=1):
     m_id, m_tags, m_author_id, m_parent_id, m_deleted, m_created, m_last_modified, m_caption, m_summary, m_message_text = main_message
     post = False if m_parent_id else True
     if not post:
-        m_parent_author_name = con.execute('select login from Users where id = (select author_id from Messages where id = ?)', [ m_parent_id ]).fetchone()[0]
+        m_parent_author_name = con.execute('select login from Users'
+                                           ' where id = (select author_id from Messages where id = ?)', [ m_parent_id ]).fetchone()[0]
     comments_list = con.execute('select Messages.id, author_id, login, deleted, created, last_modified, caption, message_text '
                                 'from Messages, Users where parent_id = ? and offset >= ? and author_id = Users.id '
-                                'order by offset limit 10', [ message_id, start-1]).fetchall()
+                                'order by offset limit 10', [ message_id, (start-1) ]).fetchall()
     return html()
 
 class PostForm(Form):
