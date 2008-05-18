@@ -19,8 +19,8 @@
 				Главное сообщение треда:<br>
 				$if(post){Теги: $(m_tags)<br>}
 				Автор: $(m_author_id)<br>
-				$if(post==False){Парент: $(m_parent_id)<br>}
-				$if(post==False){Удалено: $(m_deleted)<br>}
+				$if(not post){Парент: $(m_parent_id)<br>}
+				$if(not post){Удалено: $(m_deleted)<br>}
 				Создано: $(m_created[:-7])<br>
 				Последнее изменение: $(m_last_modified[:-7])<br>
 				Заголовок: $(m_caption)<br>
@@ -29,15 +29,15 @@
 				<hr/>                     	
 			</div>
 			<div class="span-12 last" id="comments">
-				$if(no_comments){<p>No comments for this message...</p>}
+				$if(not comments_list){<p>No comments for this message...</p>}
 				$else{
-				$for(id, author_id, deleted, created, last_modified, caption, message_text in comments) {
+				$for(id, author_id, login, deleted, created, last_modified, caption, message_text in comments_list) {
 				id: $(id)<br>
-				Автор: $(author_id)<br>
+				Автор: $(author_id) $(login)<br>
 				Удалено: $(deleted)<br>
 				Создано: $(created[:-7])<br>
 				Последнее изменение: $(last_modified[:-7])<br>
-				Заголовок: $(caption)<br>
+				Заголовок: $link(caption, message_thread, login, id)<br>
 				Текст сообщения: $(message_text)<br>
 				<hr/>}}
 			</div>

@@ -1,7 +1,7 @@
 comments of $user_name =)
-$if(no_messages){<p>You poorly have no comments yet...</p>}
+$if(not messages){<p>You poorly have no comments yet...</p>}
 $else{
-$for(tags, created, last_modified, caption, summary, message_text in messages) {
+$for(id, created, parent_id, deleted, last_modified, caption, message_text in messages) {
 Создано: $(created[:-7])<br>
 Последнее изменение: $(last_modified[:-7])<br>
 Заголовок: $(link(caption, message_thread, user_name, id))<br>
