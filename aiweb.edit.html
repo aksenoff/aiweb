@@ -1,0 +1,29 @@
+<link default>
+<link rel="stylesheet" href="/static/plugins/fancy-type/screen.css" type="text/css" media="screen, projection">
+<title>Редактирование сообщения</title>
+<body>
+	<div class="container">
+		<div class="span-18">
+			<h1>Редактирование сообщения</h1>
+		</div>
+		<div class="span-6 last">
+			$registration_component()
+		</div>
+		<hr />
+		<div class="span-24 last">
+			<div class="span-5 colborder">
+				<h2>Что будет здесь?</h2>
+			</div>
+		    <div class="span-12 colborder">
+			    <h2>Редактирование сообщения:</h2> 
+			    $if(parent_id){$CommentForm(parent_id, message_id=message_id)}
+			    $else{$PostForm(message_id)}                  	
+		    </div>
+		    <div class="span-5 last">
+				<h2>Что будет здесь?<</h2>
+			</div>
+			<hr/> 
+		 </div>		  
+	</div>	
+</body>
+</html>

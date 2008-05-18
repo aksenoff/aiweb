@@ -27,13 +27,18 @@
 		    </div>
 		    <div class="span-5 last">
 				<h2>Панель управления</h2>
+			    $if(my){
+			        $if(post){$link(u"Редактировать", edit, m_user_name, message_id)}
+			        $else{$link(u"Редактировать", edit, m_user_name, message_id)}<br>
+			        }
+			    $else{[+] [-]<br/>}
 			    $if(not post){$link(u"К родительской ветке", message_thread, m_parent_author_name, m_parent_id)<br/>}
 			</div>
 			<hr/> 
 		  </div>		  
 		  $if(not comments_list){
 		  <div class="span-12 last prepend-6">
-		    На это сообщение не оставлено ни одного комментария...</p>
+		    <p>На это сообщение не оставлено ни одного комментария...</p>
 		  </div>}
 		  $else{
 		  <div class="span-12 last prepend-6">
@@ -47,7 +52,6 @@
 				Автор: $link(login, home, login)<br/>
 			</div>
 			<div class="span-12 colborder" id="comments">				
-				id: $(id)<br/>
 				Удалено: $(deleted)<br/>
 				Создано: $(created[:-7])<br/>
 				Последнее изменение: $(last_modified[:-7])<br/>
@@ -56,13 +60,15 @@
 			</div>
 		    <div class="span-5 last">
 				<h3>Панель управления</h3>
+				$if(http.user==author_id){$link(u"Редактировать", edit, login, id)<br/>}
+				$else{[+] [-]<br/>}
+				$if((http.user==author_id)or(my)){Удалить}
 		    </div>
 		    <hr/>
 		</div>}}
 		<div class="span-12 last prepend-6" id="comment_form">
 			$if(http.user){Оставьте свой комментарий: $CommentForm(m_id, m_caption)}
 		</div>
-
 	</div>	
 </body>
 </html>

@@ -146,8 +146,8 @@ def pages(type, pn=1, user_id=0, parent_id=0):
         if i == pn: print '<strong>[%d]</strong>' % i
         else:
             if type == 1: print '[%s] ' % link(str(i), posts, user_name, (i-1)*10+1)
-            if type == 2: print '[%s] ' % link(str(i), comments, user_name, (i-1)*10+1)
-            if type == 3: print '[%s] ' % link(str(i), message_thread, user_name, parent_id, (i-1)*10+1)
+            if type == 2: print '[%s] ' % link(str(i), comments, user_name, (i-1)*10+1)                     ## не
+            if type == 3: print '[%s] ' % link(str(i), message_thread, user_name, parent_id, (i-1)*10+1)    ## работает!
     print '<hr>'
     
 @http('/$user_name?start=$start')
@@ -207,6 +207,15 @@ def message_thread(m_user_name, message_id, start=1):
                                 'order by offset limit 10', [ message_id, (start-1) ]).fetchall()
     return html()
 
+@http('/$user_name/edit?message_id=$message_id')
+def edit(user_name, message_id):
+    con = connect()
+    user_id = con.execute('select id from Users where login = ?', [ user_name ]).fetchone()[0]
+    if user_id is None: raise http.NotFound
+    if user_id != http.user: raise http.NotFound
+    parent_id = con.execute('select parent_id from Messages where id = ?', [ message_id ]).fetchone()[0]
+    return html()
+
 class PostForm(Form):
     def __init__(self, message_id=None):
         # message_id==None if message is posted for the first time :)
@@ -250,7 +259,7 @@ class PostForm(Form):
         con.commit()
 
 class CommentForm(Form):
-    def __init__(self, parent_id, parent_caption, message_id=None):
+    def __init__(self, parent_id, parent_caption=None, message_id=None):
         # message_id==Null if comment is posted for the first time :)
         self.parent_id = parent_id
         self.parent_caption = parent_caption
