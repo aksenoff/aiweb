@@ -142,12 +142,14 @@ def pages(type, pn=1, user_id=0, parent_id=0):
     user_name = con.execute('select login from Users where id = ?', [ user_id ]).fetchone()[0]
     if nmessages < 11: return
     npages = (nmessages / 10) + 1
+    print '<div class="pages">'
     for i in range(1, npages+1):
         if i == pn: print '<strong>[%d]</strong>' % i
         else:
             if type == 1: print '[%s] ' % link(str(i), posts, user_name, (i-1)*10+1)
-            if type == 2: print '[%s] ' % link(str(i), comments, user_name, (i-1)*10+1)                     ## не
-            if type == 3: print '[%s] ' % link(str(i), message_thread, user_name, parent_id, (i-1)*10+1)    ## работает!
+            if type == 2: print '[%s] ' % link(str(i), comments, user_name, (i-1)*10+1)
+            if type == 3: print '[%s] ' % link(str(i), message_thread, user_name, parent_id, (i-1)*10+1)
+    print '</div>'
     print '<hr>'
     
 @http('/$user_name?start=$start')
@@ -198,7 +200,7 @@ def message_thread(m_user_name, message_id, start=1):
                                'from Messages where id = ? and author_id = ?', [ message_id, m_user_id ]).fetchone()
     if main_message is None: raise http.NotFound
     m_id, m_tags, m_author_id, m_parent_id, m_deleted, m_created, m_last_modified, m_caption, m_summary, m_message_text = main_message
-    post = False if m_parent_id else True
+    post = not m_parent_id
     if not post:
         m_parent_author_name = con.execute('select login from Users'
                                            ' where id = (select author_id from Messages where id = ?)', [ m_parent_id ]).fetchone()[0]

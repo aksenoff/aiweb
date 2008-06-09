@@ -3,8 +3,8 @@ Petrov:20
   Sidorov:30 ->(Ivanov:10 Petrov:20) +Ivanov -Petrov 
   -Sidorov:40
     Medvedev:46 +Ivanov
-Smirnov:11
-Smirnov:12
+Smirnov:11 -Ivanov
+Smirnov:12 -Zemcov
 Tarasov:14
 Semenov:18
 Ivanov:33 ->(Smirnov:12)

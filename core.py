@@ -165,6 +165,7 @@ def load_from_file(filename='test.txt'):
         node.calc_targets() 
     for i in range(1000): calc_rank()
     for login, user in users.iteritems(): print login, user.rank
+    print sum(user.rank for user in users.values())
     return users, messages
 
 if __name__ == '__main__':
