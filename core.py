@@ -41,7 +41,6 @@ class User(Node):
         message.deleted = True
         message.deleter = self
     def vote(self, message, sign):
-        # True for "+" and False for "-"
         if self not in message.voters.keys():
             message.voters[self] = sign
             self.votes[message] = sign
@@ -49,7 +48,7 @@ class User(Node):
         else:
             if message.voters[self] ^ sign:
                 del(message.voters[self])
-            else: pass                    
+            else: pass
 
 class Message(Node):
     def __init__(self, user, number, parent=None, indent=0):
@@ -77,7 +76,7 @@ class Message(Node):
         targets[self.user] = user_weight
         for link in self.links_to: targets[link] = link_weight
         if self.deleted:
-            self.parent.user.targets[self.user] = del_coeff
+            self.parent.user.targets[self] = del_coeff
 
 class SyntaxError(Exception):
     def __init__(self, line_number, msg, line_text):

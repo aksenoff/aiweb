@@ -7,9 +7,9 @@ from datetime import datetime
 import sha
 use_autoreload()
 
-import core
+import basecore
 
-users, messages = core.load_from_file()
+basecore.recompute_base()
 
 def connect():
     return sqlite.connect('aiweb.db3')
@@ -83,6 +83,7 @@ def registration_component():
 @http('/')
 @printhtml
 def main():
+    con = connect()
     uranks = sorted(users.values(), key=lambda x: x.rank, reverse=True)
     mranks = sorted(messages.values(), key=lambda x: x.rank, reverse=True)
     return html()
