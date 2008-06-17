@@ -9,7 +9,7 @@ karma_part = 0.1
 del_coeff = -0.1
 
 def connect():
-    return sqlite.connect('C:/aiweb/aiweb.db3')
+    return sqlite.connect('aiweb.db3')
 
 class Node(object):
     def __init__(self):
@@ -89,10 +89,8 @@ def from_base():
         user = user[0]
         users[user] = User(user) ## :)
     m = con.execute(u'select id from Messages')
-    for message in m:
-        message = message[0]
-        user, parent, deleted = con.execute(
-            u'select login, parent_id, deleted from Messages, Users where Messages.id = ? and Users.id = Messages.author_id', [ message ]).fetchone()
+    for user, parent, deleted in con.execute(u'select login, parent_id, deleted '
+                                             'from Messages, Users where Users.id = Messages.author_id')
         user = users[user]
         if parent: parent = messages[parent]
         messages[message] = Message(user, message, parent, deleted)
@@ -102,7 +100,6 @@ def from_base():
         message2 = messages.get(link[1])
         message.links_to.add(message2)
         message2.links_from.add(message)
-    lu = con.execute(u'select * from LinksToUsers') ## ??
     return users, messages
         
 nodes = []
