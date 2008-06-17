@@ -84,8 +84,17 @@ def registration_component():
 @printhtml
 def main():
     con = connect()
-    uranks = sorted(users.values(), key=lambda x: x.rank, reverse=True)
-    mranks = sorted(messages.values(), key=lambda x: x.rank, reverse=True)
+    top_users = con.execute('select login from Users where disabled = 0 order by rating desc limit 10').fetchall()
+    top_posts = con.execute(
+        'select Messages.id, login, created, last_modified, caption, summary, tags, message_text '
+        'from Users, Messages where author_id = Users.id and deleted = 0 and disabled = 0 and parent_id is null '
+        'order by Messages.rating desc limit 10').fetchall()
+    top_comments = con.execute(
+        'select Messages.id, Users.login, created, last_modified, caption, summary, tags, message_text, parent_id, Users2.login '
+        'from Users, Messages, Users as Users2 '
+        'where author_id = Users.id and deleted = 0 and Users.disabled = 0 and parent_id is not null and Users2.id = Messages.author_id '
+        'order by Messages.rating desc limit 10').fetchall()
+    tags = con.execute('select id, name from Tags').fetchall()
     return html()
 
 @http('/register')
@@ -258,6 +267,9 @@ class PostForm(Form):
             self.message_id = cur.lastrowid
         for tag_name in tag_names:
             tag_id = con.execute('select id from Tags where name = ?', [ tag_name ]).fetchone()
+            if not tag_id:
+                cur = con.execute('insert into Tags (name) values (?)', [ tag_name ])
+                tag_id = cur.lastrowid
             con.execute('insert into MessageTags values (?, ?)', [ self.message_id, tag_id ])
         con.commit()
 

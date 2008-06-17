@@ -90,7 +90,7 @@ def from_base():
         users[user] = User(user) ## :)
     m = con.execute(u'select id from Messages')
     for id, user, parent, deleted in con.execute(u'select Messages.id, login, parent_id, deleted '
-                                             'from Messages, Users where Users.id = Messages.author_id'):
+                                                 'from Messages, Users where Users.id = Messages.author_id'):
         user = users[user]
         if parent: parent = messages[parent]
         messages[id] = Message(user, id, parent, deleted)

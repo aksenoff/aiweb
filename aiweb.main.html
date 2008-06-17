@@ -12,39 +12,50 @@
                    <hr/>		   
 		   <div class="span-5 colborder">
                         <div class="span-5 last">
-                             <h2>Top rated users</h2>
+                             <h3>Лучшие пользователи</h3>
                         </div>
                         <div class="span-5 last">
-			     $for(i in range(10)) {
+			     $for((login,) in top_users) {
 				    <div class="span-5 last">
-                        	        $(uranks[i].login)
+                        	        $link(login, home, login)
                    		    </div>
                                     <hr/>}
                         </div>
+                        <div class="span-5 alt last">
+                        	<h3>Tags cloud</h3>
+				$for(id, name in tags) {
+				$(name) }
+                   	</div>
                    </div>
 		   <div class="span-12 colborder">
 		   	<div class="span-12 last">
-                        	<h3>Recommended posts / Most Recent posts</h3>
+                        	<h2>Лучшие посты</h2>
                    	</div>
 		   	<div class="span-12 last">
-                        $for(i in range(10)) {
+                        $for(id, login, created, last_modified, caption, summary, tags, message_text in top_posts) {
                         	<div class="span-12 last">
-                        	$(mranks[i].number) by $(mranks[i].user.login)
+                        	<h3>$link(caption, message_thread, login, id)</h3>
+				Автор: $link(login, home, login)<br>
+				$if(summary==""){$(message_text)}
+				$else{$(summary)}<br>
+				$if(tags!=""){Теги: $(tags)<br>}
+				Создано: $(created[:-7])
                    		</div>
                                 <hr/>}                        	
                    	</div>
                    </div>
 		   <div class="span-5 last">
                    	<div class="span-5 last">
-                        	<h2>Best posts</h2>
-					$for(i in range(10)) {
-                        		<div class="span-5 last">
-                        		$(mranks[i].number) by $(mranks[i].user.login)
+                        	<h3>Лучшие комментарии</h3>
+					$for(id, login, created, last_modified, caption, summary, tags, message_text, parent_id, parent_author_name in top_comments) {
+					<div class="span-5 last">
+                        		<i>$link(caption, message_thread, login, id)</i><br>
+					Автор: $link(login, home, login)<br>
+					$(message_text)<br>
+					Создано: $(created[:-7])<br>
+					$link(u"К родительской ветке", message_thread, parent_author_name, parent_id)
                    			</div>
                                 	<hr/>}
-                   	</div>
-                        <div class="span-5 alt last">
-                        	<h3>Tags cloud</h3>
                    	</div>
                    </div>	
 	  </div>
