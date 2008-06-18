@@ -1,7 +1,7 @@
 <h2>$if(not my){Комментарии пользователя $(user_name):}
 $else{Ваши комментарии:}</h2>
 $pages(2, (start-1)/10+1, user_id)
-$if(not messages){<p>You poorly have no comments yet...</p>}
+$if(not messages){<p>У Вас пока нет комментариев...</p>}
 $else{
 $for(id, created, parent_id, deleted, last_modified, caption, message_text in messages) {
 Создано: $(created[:-7])<br>

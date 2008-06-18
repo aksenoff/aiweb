@@ -1,6 +1,6 @@
 <h2>$if(not my){Посты пользователя $(user_name):}
 $else{Ваши посты:}</h2>
-$if(not messages){<p>You poorly have no posts yet...</p>}
+$if(not messages){<p>У Вас пока нет постов...</p>}
 $else{
 $pages(1, (start-1)/10+1, user_id)
 $for(id, tags, created, last_modified, caption, summary, message_text in messages) {
