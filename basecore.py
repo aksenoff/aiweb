@@ -109,7 +109,6 @@ def calc_rank():
         node.new_rank = 0
     for node in nodes:
         rank = node.rank
-#        print node
         for target, coeff in node.targets.items():
            target.new_rank += rank*coeff           
     for node in nodes:
@@ -130,7 +129,6 @@ def recompute_base():
         con.execute('update Users set rating = ? where login = ?', [ user.rank, user.login ])
     for message in messages.itervalues():
         con.execute('update Messages set rating = ? where id = ?', [ message.rank, message.number ])
-    con.execute('')
     con.commit()
 
 if __name__ == '__main__':

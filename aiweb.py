@@ -267,9 +267,10 @@ class PostForm(Form):
             self.message_id = cur.lastrowid
         for tag_name in tag_names:
             tag_id = con.execute('select id from Tags where name = ?', [ tag_name ]).fetchone()
-            if not tag_id:
+            if tag_id is None:
                 cur = con.execute('insert into Tags (name) values (?)', [ tag_name ])
                 tag_id = cur.lastrowid
+            else: tag_id = tag_id[0]
             con.execute('insert into MessageTags values (?, ?)', [ self.message_id, tag_id ])
         con.commit()
 
@@ -303,4 +304,4 @@ class CommentForm(Form):
                         [ self.parent_id, user_id, self.parent_id, now, now, self.caption.value, self.message.value ])
         con.commit()
 
-http.start()
+http.start('10.224.108.63:8080')

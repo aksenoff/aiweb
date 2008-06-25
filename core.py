@@ -155,7 +155,7 @@ def calc_rank():
         # print node, node.new_rank
         node.rank = 1. - dumping_factor + dumping_factor*node.new_rank
 
-def load_from_file(filename='test.txt'):
+def load_from_file(filename='C:/aiweb/test.txt'):
     users, messages = parse(file(filename))
     nodes.extend(users.itervalues())
     nodes.extend(messages.itervalues())
