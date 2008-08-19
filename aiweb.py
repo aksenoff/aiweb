@@ -63,7 +63,10 @@ class RegForm(Form):
         raise http.Redirect(url(main))
 
 @printhtml
-def registration_component():
+def registration_component(where):
+    # where == 0 - we're on the main page
+    # where == 1 - we're on our home page
+    # where == 2 - we're somewhere else
     user_id = http.user
     if user_id is None:
         f = LoginForm()
@@ -76,7 +79,9 @@ def registration_component():
     if row:
         login = row[0]
         print u'<h3>Вы вошли как: %s</h3>' % link(login, home, login)
-        print u'<p>%s</p>' % link(u'Выйти',logout)
+        if where == 1 or where == 2: print u'<p><a class="button" href="%s"><img src="/static/images/icons/i.png">Главная</a>' % url(main)
+        if where == 0 or where == 2: print u'<a class="button" href="%s"><img src="/static/images/icons/house.png">Домой</a>' % url(home, login)
+        print u'<a class="button negative" href="%s"><img src="/static/images/icons/login.png">Выйти</a></p>' % url(logout)
         return
     print u"Внутренняя ошибка базы данных!"
     
@@ -232,10 +237,10 @@ class PostForm(Form):
     def __init__(self, message_id=None):
         # message_id==None if message is posted for the first time :)
         self.message_id = message_id
-        self.caption = Text(u'Заголовок', required=True)
-        self.summary = TextArea(u'Краткой строкой')
-        self.tag_string = Text(u'Теги')
-        self.message = TextArea(u'Текст сообщения', required=True)
+        self.caption = Text(u'Заголовок', required=True, size=51)
+        self.summary = TextArea(u'Краткой строкой', rows=3, cols=40)
+        self.tag_string = Text(u'Теги', size=51)
+        self.message = TextArea(u'Текст сообщения', required=True, rows=10, cols=40)
         if self.message_id:
             self.submit = Submit(u'Сохранить')
             con = connect()
@@ -270,18 +275,18 @@ class PostForm(Form):
             if tag_id is None:
                 cur = con.execute('insert into Tags (name) values (?)', [ tag_name ])
                 tag_id = cur.lastrowid
-            else: tag_id = tag_id[0]
+            tag_id = tag_id[0]
             con.execute('insert into MessageTags values (?, ?)', [ self.message_id, tag_id ])
         con.commit()
 
 class CommentForm(Form):
     def __init__(self, parent_id, parent_caption=None, message_id=None):
-        # message_id==Null if comment is posted for the first time :)
+        # message_id==None if comment is posted for the first time :)
         self.parent_id = parent_id
         self.parent_caption = parent_caption
         self.message_id = message_id
-        self.caption = Text(u'Заголовок')
-        self.message = TextArea(u'Текст комментария', required=True)
+        self.caption = Text(u'Заголовок', size=51)
+        self.message = TextArea(u'Текст комментария', required=True, rows=10, cols=40)
         if self.message_id:
             self.submit = Submit(u'Сохранить')
             con = connect()
@@ -289,19 +294,25 @@ class CommentForm(Form):
                 'select caption, message_text from Messages where id = ?', [ self.message_id ]).fetchone()
         else: self.submit = Submit(u'Откомментить!')
     def on_submit(self):
+        message = self.message.value
+        if len(message) > 100:
+            end = 100
+            while message[end].isalnum(): end -= 1
+            while not message[end].isalnum(): end -= 1
+            summary = message[:end+1] + "..."
+        else: summary = ""
         user_id = http.user
         if self.caption.value=="" and self.parent_caption[:3]!="Re:":
             self.caption.value = u'Re: ' + self.parent_caption
         con = connect()
         now = datetime.now()
         if self.message_id:
-            con.execute('update Messages set last_modified = ?, caption = ?, message_text = ? where id = ?',
-                        [ now, self.caption.value, self.message.value, self.message_id ])
-            con.execute('delete from MessageTags where message_id = ?', [ self.message_id ])
+            con.execute('update Messages set last_modified = ?, caption = ?, message_text = ?, summary = ? where id = ?',
+                        [ now, self.caption.value, message, summary, self.message_id ])
         else:
             con.execute('insert into Messages (offset, author_id, parent_id, created, last_modified, caption, message_text) '
                         'values((select coalesce(max(offset)+1, 0) from Messages where parent_id = ?), ?, ?, ?, ?, ?, ?)',
-                        [ self.parent_id, user_id, self.parent_id, now, now, self.caption.value, self.message.value ])
+                        [ self.parent_id, user_id, self.parent_id, now, now, self.caption.value, message ])
         con.commit()
 
 http.start('10.224.108.63:8080')

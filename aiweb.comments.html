@@ -1,14 +1,17 @@
-<h2>$if(not my){Комментарии пользователя $(user_name):}
-$else{Ваши комментарии:}</h2>
-$pages(2, (start-1)/10+1, user_id)
-$if(not messages){<p>У Вас пока нет комментариев...</p>}
-$else{
-$for(id, created, parent_id, deleted, last_modified, caption, message_text in messages) {
-Создано: $(created[:-7])<br>
-Последнее изменение: $(last_modified[:-7])<br>
-Заголовок: $(link(caption, message_thread, user_name, id))<br>
-Текст сообщения: $(message_text)<br>
-id треда: $(parent_id)<br>
-<hr/>
+<h2>
+$if(not my){Комментарии пользователя $(user_name):}
+$else{Ваши комментарии:}
+</h2>
+$if(not messages){
+	$if(not my){<p>У пользователя пока нет комментариев...</p>}
+	$else{<p>У Вас пока нет комментариев...</p>}
 }
+$else{
+	$for(id, created, parent_id, deleted, last_modified, caption, message_text in messages) {
+		Создано: $(created[:-7])<br>
+		Последнее изменение: $(last_modified[:-7])<br>
+		Заголовок: $(link(caption, message_thread, user_name, id))<br>
+		Текст сообщения: $(message_text)<br>
+		id треда: $(parent_id)<br>
+		<hr/>}
 }

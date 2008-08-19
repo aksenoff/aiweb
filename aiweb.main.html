@@ -1,64 +1,109 @@
 <link default>
-<link rel="stylesheet" href="/static/plugins/fancy-type/screen.css" type="text/css" media="screen, projection">
-<title>Главная</title>
+<link rel="stylesheet" href="/pony/static/blueprint/plugins/fancy-type/screen.css" type="text/css" media="screen, projection">
+<link rel="stylesheet" href="/pony/static/blueprint/plugins/buttons/buttons.css" type="text/css" media="screen, projection">
+<title>aiWeb - Главная</title>
 <body>
-	  <div class="container">
-	  	   <div class="span-18">
-			<h1>Добро пожаловать</h1>
-		   </div>
-                   <div class="span-6 last">
-                        $registration_component()
-		   </div>
-                   <hr/>		   
-		   <div class="span-5 colborder">
-                        <div class="span-5 last">
-                             <h3>Лучшие пользователи</h3>
-                        </div>
-                        <div class="span-5 last">
-			     $for((login,) in top_users) {
-				    <div class="span-5 last">
-                        	        $link(login, home, login)
-                   		    </div>
-                                    <hr/>}
-                        </div>
-                        <div class="span-5 alt last">
-                        	<h3>Tags cloud</h3>
-				$for(id, name in tags) {
-				$(name) }
-                   	</div>
-                   </div>
-		   <div class="span-12 colborder">
-		   	<div class="span-12 last">
-                        	<h2>Лучшие посты</h2>
-                   	</div>
-		   	<div class="span-12 last">
-                        $for(id, login, created, last_modified, caption, summary, tags, message_text in top_posts) {
-                        	<div class="span-12 last">
-                        	<h3>$link(caption, message_thread, login, id)</h3>
-				Автор: $link(login, home, login)<br>
-				$if(summary==""){$(message_text)}
-				$else{$(summary)}<br>
-				$if(tags!=""){Теги: $(tags)<br>}
-				Создано: $(created[:-7])
-                   		</div>
-                                <hr/>}                        	
-                   	</div>
-                   </div>
-		   <div class="span-5 last">
-                   	<div class="span-5 last">
-                        	<h3>Лучшие комментарии</h3>
-					$for(id, login, created, last_modified, caption, summary, tags, message_text, parent_id, parent_author_name in top_comments) {
+	<div class="container">
+		<div class="span-17">
+			<h1>aiWeb<img src="/static/images/beta.png"></h1>
+		</div>
+		<div class="span-7 last">
+                	$registration_component(0)
+		</div>
+		<hr/>		   
+		<div class="span-5 colborder">
+			<div class="span-5 last">
+				<h3>Лучшие пользователи</h3>
+			</div>
+			<div class="span-5 last">
+				$for((login,) in top_users) {
 					<div class="span-5 last">
-                        		<i>$link(caption, message_thread, login, id)</i><br>
-					Автор: $link(login, home, login)<br>
-					$(message_text)<br>
-					Создано: $(created[:-7])<br>
-					$link(u"К родительской ветке", message_thread, parent_author_name, parent_id)
+						<div class="span-3">
+							<img src="/static/images/avatar.png"><br><br>
+						</div>
+						<div class="span-2 last">
+							$link(login, home, login)
+							<a href="$url(home, login)" class="button">
+								&nbsp;&nbsp;<img src="/static/images/icons/house.png">
+							</a><br>
+							<a href="$url(home, login)" class="button">
+								&nbsp;&nbsp;<img src="/static/images/icons/email.png">
+							</a><br><br>
+						</div>
+					</div>
+					<hr/>}
+			</div>
+			<div class="span-5 alt last">
+				<h3>Tags cloud</h3>
+				$for((id, name) in tags) {
+					$(name) }
+			</div>
+		</div>
+		<div class="span-12 colborder">
+			<div class="span-12 last">
+				<h2>Лучшие посты</h2>
+			</div>
+			<div class="span-12 last">
+				$for(id, login, created, last_modified, caption, summary, tags, message_text in top_posts) {
+					<div class="span-12 last">
+						<div class="span-8 colborder">
+							<h3>$link(caption, message_thread, login, id)</h3>
+							<div class="alt">
+								$(created[:-7])<br>
+								$if(created[:-7]!=last_modified[:-7]){Последнее изменение: $(last_modified[:-7])<br>}<br>
+							</div>
+							$if(tags!=""){
+								<div class="alt">
+									$(tags)
+								</div><br>}
+							$if(summary==""){$(message_text)}
+							$else{
+								$(summary)<br><br>
+								<a href="$url(message_thread, login, id)" class="button">
+								<img src="/static/images/icons/conversation.png">Далее...
+								</a>}
+							<br><br>
+						</div>
+						<div class="span-3 last">
+							Автор: $link(login, home, login)<br>
+							<img src="/static/images/avatar.png"><br><br>
+							<a href="$url(home, login)" class="button">
+								<img src="/static/images/icons/house.png">Дом.стр.
+							</a><br>
+							<a href="$url(home, login)" class="button">
+								<img src="/static/images/icons/email.png">Cообщение
+							</a><br><br>
+						</div>					
+                   			</div>
+                                	<hr/>}                        	
+			</div>
+		</div>
+		<div class="span-5 last">
+			<div class="span-5 last">
+                        	<h3>Лучшие комментарии</h3>
+				$for(id, login, created, last_modified, caption, summary, tags, message_text, parent_id, parent_author_name in top_comments) {
+					<div class="span-5 last">
+                        			Автор: $link(login, home, login)<br>
+						<div class="alt">
+							$link(caption, message_thread, login, id)
+						</div>
+						<div class="alt">
+							$(created[:-7])<br>
+							$if(created[:-7]!=last_modified[:-7]){Последнее изменение: $(last_modified[:-7])<br>}
+						</div>
+						$if(summary==""){$(message_text)}
+						$else{$(summary)}<br>
+						<a href="$url(message_thread, login, id)" class="button">
+							$if(summary!=""){<img src="/static/images/icons/conversation.png">Читать далее...}
+							$else{<img src="/static/images/icons/conversation.png">К ветке}
+						</a><br>
+						<a href="$url(message_thread, parent_author_name, parent_id)" class="button">
+							<img src="/static/images/icons/parent_thread.png">К родительской ветке
+						</a><br><br>
                    			</div>
                                 	<hr/>}
-                   	</div>
-                   </div>	
-	  </div>
-
+			</div>
+		</div>	
+	</div>
 </body>
 </html>
